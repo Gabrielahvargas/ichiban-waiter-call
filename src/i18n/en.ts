@@ -55,8 +55,8 @@ export const en = {
     title: "Demo mode",
     subtitle:
       "Simulated buttons with a real clock. Records are stored separately from production.",
-    call: "Button 3 — Call",
-    attend: "Button 4 — Attended",
+    call: "Button {n} — Call",
+    attend: "Button {n} — Attended",
     openScreen: "Open demo call screen",
     badge: "DEMO",
     ignoredPending: "Ignored: this table already has a pending call",
