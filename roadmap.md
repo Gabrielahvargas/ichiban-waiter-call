@@ -14,8 +14,11 @@
 - [x] Menú de administración en barra lateral izquierda, colapsable a iconos y se oculta automáticamente al navegar
 - [x] Endpoint firmado para el gateway (`/api/public/tuya-events`), inactivo hasta configurar el secreto
 
-Bloqueado por el usuario:
-- [ ] Integración Tuya/Smart Life real: requiere el secreto de firma `TUYA_WEBHOOK_SECRET`
-      y la configuración del gateway para enviar los eventos de botón 3/4.
-      Hasta entonces el estado sigue siendo "pendiente" con diagnóstico en pantalla.
+En progreso:
+- [ ] Integración Tuya Message Service: botones 3/4 configurables por mesa, recepción de eventos segura, duplicados controlados,
+      puente para Railway listo (auto-reconexión y procesamiento de mensajes pendientes). No publicar.
+
+Hecho:
+- [x] Botones físicos configurables por mesa (llamar/atender entre 1-4) en Configuración, con validación y resolución del mapeo en el servidor
+
 - [x] Botones físicos configurables por mesa (llamar/atender entre 1-4) en Configuración, con validación y resolución del mapeo en el servidor
