@@ -146,6 +146,8 @@ export type Database = {
         Row: {
           button: number
           call_id: string | null
+          click_type: string | null
+          device_id: string | null
           environment: Database["public"]["Enums"]["app_env"]
           id: string
           idempotency_key: string
@@ -157,6 +159,8 @@ export type Database = {
         Insert: {
           button: number
           call_id?: string | null
+          click_type?: string | null
+          device_id?: string | null
           environment?: Database["public"]["Enums"]["app_env"]
           id?: string
           idempotency_key: string
@@ -168,6 +172,8 @@ export type Database = {
         Update: {
           button?: number
           call_id?: string | null
+          click_type?: string | null
+          device_id?: string | null
           environment?: Database["public"]["Enums"]["app_env"]
           id?: string
           idempotency_key?: string
@@ -590,6 +596,7 @@ export type Database = {
         Args: {
           p_button: number
           p_click_type?: string
+          p_device_id?: string
           p_environment: Database["public"]["Enums"]["app_env"]
           p_idempotency_key: string
           p_source?: string
