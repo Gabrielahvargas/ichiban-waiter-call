@@ -180,6 +180,7 @@ export const en = {
     signInFailed: "Could not sign in.",
     notAdmin: "You need administrator access for this page.",
   },
-} as const;
+};
 
-export type Dictionary = typeof en;
+type DeepString<T> = { [K in keyof T]: T[K] extends string ? string : DeepString<T[K]> };
+export type Dictionary = DeepString<typeof en>;
