@@ -9,7 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import { useSettings } from "@/modules/config/useSettings";
 import { callRpc } from "@/modules/shared/rpc";
-import { bulbCodesForTable, type AppSettings, type DiningTable } from "@/modules/shared/types";
+import {
+  bulbCodesForTable,
+  type AppSettings,
+  type ClickType,
+  type DiningTable,
+} from "@/modules/shared/types";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
