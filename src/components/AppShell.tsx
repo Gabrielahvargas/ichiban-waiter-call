@@ -86,7 +86,7 @@ function AppSidebar() {
         </Link>
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup defaultOpen>
+        <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
               {NAV.map((item) => (
