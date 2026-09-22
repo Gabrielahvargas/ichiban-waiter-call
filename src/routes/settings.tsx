@@ -258,7 +258,7 @@ function SettingsPage() {
                           value={table.call_click_type}
                           onChange={(v) => {
                             const next = [...tables];
-                            next[index] = { ...table, call_click_type: v };
+                            next[index] = { ...table, call_click_type: v as ClickType };
                             setTables(next);
                           }}
                         />
