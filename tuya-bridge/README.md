@@ -16,10 +16,42 @@ Lovable (and most hosted frontends) cannot keep a permanent connection open to T
 
 ## Files
 
-- `main.py` — bridge entry point.
+- `main.py` — bridge entry point (Pulsar loop, acknowledgement policy).
+- `bridge_core.py` — message parsing, signing and forwarding (no Pulsar dependency).
+- `test_bridge.py` — automated tests (table 700 messages, duplicates, connection failures).
 - `mq_authentication.py` — Tuya's Pulsar basic-auth generator.
 - `message_util.py` — AES decryption helpers (Tuya-compatible).
-- `requirements.txt` — Python dependencies.
+- `requirements.txt` / `requirements-dev.txt` — Python dependencies.
+
+## Message format handled
+
+```json
+{"dataId":"...","devId":"bf...700","bizCode":"devicePropertyMessage",
+ "bizData":{"devId":"bf...700",
+            "properties":[{"code":"switch_type_3","value":"single_click","time":1758000000000}]}}
+```
+
+Older `status` / `dps` shapes are still accepted. Non-device messages
+(`deviceOnline`, etc.) and non-switch properties (battery, etc.) are ignored.
+
+## Acknowledgement policy
+
+- A Pulsar message is acknowledged **only** after the backend accepted every
+  switch event inside it.
+- Network errors and HTTP 5xx → negative acknowledge, Pulsar redelivers after 5 s.
+- HTTP 400/401/403/422 → logged as `REJECTED (permanent)` and acknowledged
+  (retrying cannot fix a bad payload or a bad signature).
+- Undecryptable messages are logged as `DROPPED` and acknowledged.
+- The idempotency key comes from Tuya's `dataId`, so a redelivered message
+  reuses the same key and the backend deduplicates it — no double calls.
+
+## Running the tests
+
+```bash
+cd tuya-bridge
+pip install pytest
+python -m pytest test_bridge.py -v
+```
 - `Dockerfile` — container image.
 - `railway.toml` / `Procfile` — Railway deployment hints.
 
