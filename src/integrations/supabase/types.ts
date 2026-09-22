@@ -241,32 +241,41 @@ export type Database = {
         Row: {
           alert_bulb_code: string
           attend_button: number
+          attend_click_type: string
           button_device_external_id: string | null
           call_button: number
+          call_click_type: string
           created_at: string
           gateway_external_id: string | null
           id: string
           table_number: number
+          tuya_cursor_ms: number | null
         }
         Insert: {
           alert_bulb_code: string
           attend_button?: number
+          attend_click_type?: string
           button_device_external_id?: string | null
           call_button?: number
+          call_click_type?: string
           created_at?: string
           gateway_external_id?: string | null
           id?: string
           table_number: number
+          tuya_cursor_ms?: number | null
         }
         Update: {
           alert_bulb_code?: string
           attend_button?: number
+          attend_click_type?: string
           button_device_external_id?: string | null
           call_button?: number
+          call_click_type?: string
           created_at?: string
           gateway_external_id?: string | null
           id?: string
           table_number?: number
+          tuya_cursor_ms?: number | null
         }
         Relationships: []
       }
@@ -400,6 +409,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tuya_event_log: {
+        Row: {
+          button: number | null
+          click_type: string | null
+          device_id: string | null
+          error: string | null
+          id: string
+          raw: Json | null
+          received_at: string
+          result: string | null
+          source: string
+          table_number: number | null
+        }
+        Insert: {
+          button?: number | null
+          click_type?: string | null
+          device_id?: string | null
+          error?: string | null
+          id?: string
+          raw?: Json | null
+          received_at?: string
+          result?: string | null
+          source?: string
+          table_number?: number | null
+        }
+        Update: {
+          button?: number | null
+          click_type?: string | null
+          device_id?: string | null
+          error?: string | null
+          id?: string
+          raw?: Json | null
+          received_at?: string
+          result?: string | null
+          source?: string
+          table_number?: number | null
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
