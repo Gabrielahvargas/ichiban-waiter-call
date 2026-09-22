@@ -145,8 +145,9 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full bg-background">
+        <RouteCollapseWatcher />
         <AppSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-30 flex h-12 items-center gap-3 border-b border-border bg-card/95 px-4 backdrop-blur">
