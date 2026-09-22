@@ -71,12 +71,13 @@ export const Route = createFileRoute("/api/public/tuya-events")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data, error } = await supabaseAdmin.rpc("ingest_button_event", {
-          p_table_number: parsed.table_number,
+          p_table_number: parsed.table_number ?? 0,
           p_button: parsed.button,
           p_environment: "production",
           p_idempotency_key: parsed.event_id,
-          p_source: parsed.device_id ? `gateway:${parsed.device_id}` : "gateway",
-          p_click_type: parsed.click_type ?? "single",
+          p_source: `gateway:${parsed.device_id}`,
+          p_click_type: parsed.click_type,
+          p_device_id: parsed.device_id,
         } as never);
 
         if (error) return json({ error: error.message }, 500);
