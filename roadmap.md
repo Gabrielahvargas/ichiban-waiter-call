@@ -10,8 +10,8 @@
 - [x] Control de iluminación (luz compartida + rojo local 3 s)
 - [x] Bilingüe EN/ES, inglés por defecto, cambio en caliente sin reiniciar cronómetros
 - [x] Pantallas independientes emparejadas (código temporal, sesión de dispositivo, latido, gestión desde admin)
-- [x] Menú en TV con PIN (flechas/OK/Volver) para asignación diaria de meseros
 - [x] Registro de meseros y asignaciones diarias por fecha/turno con historial
+- [x] Menú de administración en barra lateral izquierda, colapsable a iconos y se oculta automáticamente al navegar
 - [x] Endpoint firmado para el gateway (`/api/public/tuya-events`), inactivo hasta configurar el secreto
 
 Bloqueado por el usuario:
