@@ -1,5 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
+
+import {
+  getSharedLightStatus,
+  resyncSharedLight,
+  type SharedLightStatus,
+} from "@/lib/shared-light.functions";
 
 import { AppShell } from "@/components/AppShell";
 import { Protected } from "@/components/Protected";
@@ -29,6 +36,11 @@ export const Route = createFileRoute("/integration")({
 function IntegrationPage() {
   const { t, locale } = useI18n();
   const { settings } = useSettings();
+  const loadLight = useServerFn(getSharedLightStatus);
+  const resync = useServerFn(resyncSharedLight);
+  const [light, setLight] = useState<SharedLightStatus | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [commands, setCommands] = useState<LightingCommand[]>([]);
   const [secretReady, setSecretReady] = useState<boolean | null>(null);
   const [lastHardwareEvent, setLastHardwareEvent] = useState<string | null>(null);
