@@ -43,14 +43,23 @@ function DemoPage() {
 
   function mappingFor(tableNumber: number) {
     const row = tables.find((tbl) => tbl.table_number === tableNumber);
-    return { call: row?.call_button ?? 3, attend: row?.attend_button ?? 4 };
+    return {
+      call: { button: row?.call_button ?? 3, clickType: row?.call_click_type ?? "single_click" },
+      attend: { button: row?.attend_button ?? 4, clickType: row?.attend_click_type ?? "single_click" },
+    };
   }
 
-  async function press(tableNumber: number, button: number) {
-    const key = `${tableNumber}-${button}`;
+  async function press(tableNumber: number, config: { button: number; clickType: string }) {
+    const key = `${tableNumber}-${config.button}-${config.clickType}`;
     setBusy(key);
     try {
-      const res = await ingestButtonEvent({ tableNumber, button, environment: "demo", source: "demo_panel" });
+      const res = await ingestButtonEvent({
+        tableNumber,
+        button: config.button,
+        environment: "demo",
+        source: "demo_panel",
+        clickType: config.clickType as "single_click" | "double_click" | "long_click",
+      });
       toast(messageFor(res.result, tableNumber, t));
     } catch {
       toast.error(t("errors.generic"));
@@ -85,19 +94,21 @@ function DemoPage() {
                   <div className="ml-auto flex gap-2">
                     <button
                       type="button"
-                      disabled={busy === `${tableNumber}-${map.call}`}
+                      disabled={busy === `${tableNumber}-${map.call.button}-${map.call.clickType}`}
                       onClick={() => void press(tableNumber, map.call)}
                       className="min-h-12 rounded-lg bg-call-pending px-4 py-2 text-sm font-semibold text-call-number disabled:opacity-60"
                     >
-                      {t("demo.call", { n: map.call })}
+                      {t("demo.call", { n: map.call.button })}
+                      <span className="ml-1 text-xs opacity-80">({t(`common.clickType.${map.call.clickType}`)})</span>
                     </button>
                     <button
                       type="button"
-                      disabled={busy === `${tableNumber}-${map.attend}`}
+                      disabled={busy === `${tableNumber}-${map.attend.button}-${map.attend.clickType}`}
                       onClick={() => void press(tableNumber, map.attend)}
                       className="min-h-12 rounded-lg bg-call-attended px-4 py-2 text-sm font-semibold text-call-number disabled:opacity-60"
                     >
-                      {t("demo.attend", { n: map.attend })}
+                      {t("demo.attend", { n: map.attend.button })}
+                      <span className="ml-1 text-xs opacity-80">({t(`common.clickType.${map.attend.clickType}`)})</span>
                     </button>
                   </div>
                 </div>

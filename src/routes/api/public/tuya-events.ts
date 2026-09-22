@@ -12,14 +12,17 @@ import { z } from "zod";
  */
 
 const payloadSchema = z.object({
-  table_number: z.number().int().positive(),
-  /** Raw switch number reported by the device (switch_1 .. switch_4). The
-   *  server resolves it into CALL or ATTEND using this table's mapping. */
+  /** Optional table number; if omitted, the device_id is used to resolve the table. */
+  table_number: z.number().int().positive().optional(),
+  /** Raw switch number reported by the device (1 .. 4). The server resolves it
+   *  into CALL or ATTEND using this table's configurable mapping. */
   button: z.number().int().min(1).max(4),
-  event_id: z.string().min(6).max(200),
-  device_id: z.string().max(200).optional(),
-  /** Only single clicks act today; other click types are ignored server-side. */
-  click_type: z.enum(["single", "double", "long"]).optional(),
+  /** Stable idempotency key from the bridge (e.g. pulsar messageId or dataId). */
+  event_id: z.string().min(6).max(400),
+  /** Tuya device ID of the physical Zigbee button. Required for bridge events. */
+  device_id: z.string().min(6).max(200),
+  /** Normalized click type; single_click, double_click, long_click. */
+  click_type: z.enum(["single_click", "double_click", "long_click"]).default("single_click"),
 });
 
 function json(body: unknown, status: number): Response {
@@ -68,12 +71,13 @@ export const Route = createFileRoute("/api/public/tuya-events")({
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data, error } = await supabaseAdmin.rpc("ingest_button_event", {
-          p_table_number: parsed.table_number,
+          p_table_number: parsed.table_number ?? 0,
           p_button: parsed.button,
           p_environment: "production",
           p_idempotency_key: parsed.event_id,
-          p_source: parsed.device_id ? `gateway:${parsed.device_id}` : "gateway",
-          p_click_type: parsed.click_type ?? "single",
+          p_source: `gateway:${parsed.device_id}`,
+          p_click_type: parsed.click_type,
+          p_device_id: parsed.device_id,
         } as never);
 
         if (error) return json({ error: error.message }, 500);

@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { AppEnvironment } from "@/modules/shared/types";
+import type { AppEnvironment, ClickType } from "@/modules/shared/types";
 
 export type IngestResult =
   | "call_created"
@@ -7,7 +7,8 @@ export type IngestResult =
   | "ignored_already_pending"
   | "ignored_cooldown"
   | "ignored_no_pending"
-  | "ignored_unmapped_button";
+  | "ignored_unmapped_button"
+  | "ignored_unmapped_device";
 
 export interface IngestResponse {
   result: IngestResult;
@@ -31,7 +32,8 @@ export async function ingestButtonEvent(params: {
   button: number;
   environment: AppEnvironment;
   source?: string;
-  clickType?: "single" | "double" | "long";
+  clickType?: ClickType;
+  deviceId?: string;
   idempotencyKey?: string;
 }): Promise<IngestResponse> {
   const { data, error } = await supabase.rpc("ingest_button_event", {
@@ -40,8 +42,9 @@ export async function ingestButtonEvent(params: {
     p_environment: params.environment,
     p_idempotency_key: params.idempotencyKey ?? newIdempotencyKey(),
     p_source: params.source ?? "demo",
-    p_click_type: params.clickType ?? "single",
-  });
+    p_click_type: params.clickType ?? "single_click",
+    p_device_id: params.deviceId,
+  } as never);
   if (error) throw error;
   return data as unknown as IngestResponse;
 }

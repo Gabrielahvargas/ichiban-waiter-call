@@ -9,7 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import { useSettings } from "@/modules/config/useSettings";
 import { callRpc } from "@/modules/shared/rpc";
-import { bulbCodesForTable, type AppSettings, type DiningTable } from "@/modules/shared/types";
+import {
+  bulbCodesForTable,
+  type AppSettings,
+  type ClickType,
+  type DiningTable,
+} from "@/modules/shared/types";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -77,8 +82,12 @@ function SettingsPage() {
     else toast.success(t("common.saved"));
   }
 
+  function tableActionConflict(table: DiningTable) {
+    return table.call_button === table.attend_button && table.call_click_type === table.attend_click_type;
+  }
+
   async function saveTable(table: DiningTable) {
-    if (table.call_button === table.attend_button) {
+    if (tableActionConflict(table)) {
       toast.error(t("settings.sameButtonError", { table: table.table_number }));
       return;
     }
@@ -89,7 +98,9 @@ function SettingsPage() {
         button_device_external_id: table.button_device_external_id,
         gateway_external_id: table.gateway_external_id,
         call_button: table.call_button,
+        call_click_type: table.call_click_type,
         attend_button: table.attend_button,
+        attend_click_type: table.attend_click_type,
       })
       .eq("id", table.id);
     if (error) toast.error(t("errors.saveFailed"));
@@ -223,7 +234,7 @@ function SettingsPage() {
             <p className="mb-3 text-sm text-muted-foreground">{t("settings.buttonsHelp")}</p>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {tables.map((table, index) => {
-                const invalid = table.call_button === table.attend_button;
+                const invalid = tableActionConflict(table);
                 return (
                   <div key={`buttons-${table.id}`} className="rounded-lg border border-border p-3">
                     <div className="flex items-baseline gap-3">
@@ -233,24 +244,44 @@ function SettingsPage() {
                       </span>
                     </div>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                      <SwitchChoice
-                        label={t("settings.callButton")}
-                        value={table.call_button}
-                        onChange={(v) => {
-                          const next = [...tables];
-                          next[index] = { ...table, call_button: v };
-                          setTables(next);
-                        }}
-                      />
-                      <SwitchChoice
-                        label={t("settings.attendButton")}
-                        value={table.attend_button}
-                        onChange={(v) => {
-                          const next = [...tables];
-                          next[index] = { ...table, attend_button: v };
-                          setTables(next);
-                        }}
-                      />
+                      <div className="space-y-2">
+                        <SwitchChoice
+                          label={t("settings.callButton")}
+                          value={table.call_button}
+                          onChange={(v) => {
+                            const next = [...tables];
+                            next[index] = { ...table, call_button: v };
+                            setTables(next);
+                          }}
+                        />
+                        <ClickChoice
+                          value={table.call_click_type}
+                          onChange={(v) => {
+                            const next = [...tables];
+                            next[index] = { ...table, call_click_type: v as ClickType };
+                            setTables(next);
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <SwitchChoice
+                          label={t("settings.attendButton")}
+                          value={table.attend_button}
+                          onChange={(v) => {
+                            const next = [...tables];
+                            next[index] = { ...table, attend_button: v };
+                            setTables(next);
+                          }}
+                        />
+                        <ClickChoice
+                          value={table.attend_click_type}
+                          onChange={(v) => {
+                            const next = [...tables];
+                            next[index] = { ...table, attend_click_type: v as ClickType };
+                            setTables(next);
+                          }}
+                        />
+                      </div>
                     </div>
                     {invalid ? (
                       <p className="mt-2 text-sm font-medium text-destructive">
@@ -377,6 +408,26 @@ function PinSection() {
         {t("common.save")}
       </button>
     </div>
+  );
+}
+
+function ClickChoice({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const { t } = useI18n();
+  return (
+    <label className="block text-xs text-muted-foreground">
+      {t("settings.clickTypeLabel")}
+      <select
+        className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-foreground"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {(["single_click", "double_click", "long_click"] as const).map((type) => (
+          <option key={type} value={type}>
+            {t(`common.clickType.${type}`)}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 

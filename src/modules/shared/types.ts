@@ -64,6 +64,8 @@ export interface ScreenState {
   calls: Call[];
 }
 
+export type ClickType = "single_click" | "double_click" | "long_click";
+
 export interface DiningTable {
   id: string;
   table_number: number;
@@ -72,8 +74,12 @@ export interface DiningTable {
   gateway_external_id: string | null;
   /** Physical switch (1-4) on this table's Zigbee remote that calls a waiter. */
   call_button: number;
+  /** Click type (single, double, long) required on that switch to call a waiter. */
+  call_click_type: ClickType;
   /** Physical switch (1-4) that marks the call as attended. */
   attend_button: number;
+  /** Click type required on the attended switch. */
+  attend_click_type: ClickType;
 }
 
 export interface Bulb {
