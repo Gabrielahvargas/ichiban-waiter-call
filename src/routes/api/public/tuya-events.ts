@@ -81,7 +81,20 @@ export const Route = createFileRoute("/api/public/tuya-events")({
         } as never);
 
         if (error) return json({ error: error.message }, 500);
-        return json({ ok: true, ...(data as Record<string, unknown>) }, 200);
+
+        // Apply the shared waiter-area bulb state from the resulting call state.
+        const result = (data as { result?: string } | null)?.result;
+        let light: unknown = { status: "skipped", detail: "no_state_change" };
+        if (result === "call_created" || result === "call_attended") {
+          try {
+            const { syncSharedLight } = await import("@/lib/shared-light.server");
+            light = await syncSharedLight(result);
+          } catch (e) {
+            light = { status: "error", detail: e instanceof Error ? e.message : "unknown_error" };
+          }
+        }
+
+        return json({ ok: true, ...(data as Record<string, unknown>), light }, 200);
       },
     },
   },
