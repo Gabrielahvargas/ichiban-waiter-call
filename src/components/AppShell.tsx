@@ -66,6 +66,25 @@ export function useLanguagePreference() {
   return { language, persist };
 }
 
+/** Collapses the sidebar automatically after the user selects a route. */
+function RouteCollapseWatcher() {
+  const { state, setOpen } = useSidebar();
+  const currentPath = useRouterState({
+    select: (router) => router.location.pathname,
+  });
+  const previousPath = useRef(currentPath);
+
+  useEffect(() => {
+    if (previousPath.current === currentPath) return;
+    previousPath.current = currentPath;
+    if (state === "expanded") {
+      setOpen(false);
+    }
+  }, [currentPath, state, setOpen]);
+
+  return null;
+}
+
 function AppSidebar() {
   const { t } = useI18n();
   const { state } = useSidebar();
@@ -91,7 +110,11 @@ function AppSidebar() {
             <SidebarMenu>
               {NAV.map((item) => (
                 <SidebarMenuItem key={item.to}>
-                  <SidebarMenuButton asChild isActive={isActive(item.to)}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.to)}
+                    tooltip={collapsed ? t(item.key) : undefined}
+                  >
                     <Link
                       to={item.to}
                       className="flex items-center gap-2 hover:bg-muted/50"
