@@ -72,7 +72,7 @@ def build_client(access_id: str, access_key: str) -> tuple[pulsar.Client, pulsar
         sys.exit(1)
 
     topic = f"{access_id}/out/{mq_env}"
-    subscription = f"{access_id}-sub-ichiban"
+    subscription = f"{access_id}-sub"
     log.info("Connecting to Tuya Pulsar: %s topic=%s subscription=%s", server_url, topic, subscription)
 
     client = pulsar.Client(
