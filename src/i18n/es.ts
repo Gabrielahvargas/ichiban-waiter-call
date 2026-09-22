@@ -36,6 +36,11 @@ export const es: Dictionary = {
     back: "Volver",
     refresh: "Actualizar",
     unknown: "Desconocido",
+    clickType: {
+      single_click: "clic sencillo",
+      double_click: "doble clic",
+      long_click: "pulsación larga",
+    },
   },
   live: {
     title: "Llamadas en vivo",
