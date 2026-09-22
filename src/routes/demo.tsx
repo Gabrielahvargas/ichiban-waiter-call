@@ -94,19 +94,21 @@ function DemoPage() {
                   <div className="ml-auto flex gap-2">
                     <button
                       type="button"
-                      disabled={busy === `${tableNumber}-${map.call}`}
+                      disabled={busy === `${tableNumber}-${map.call.button}-${map.call.clickType}`}
                       onClick={() => void press(tableNumber, map.call)}
                       className="min-h-12 rounded-lg bg-call-pending px-4 py-2 text-sm font-semibold text-call-number disabled:opacity-60"
                     >
-                      {t("demo.call", { n: map.call })}
+                      {t("demo.call", { n: map.call.button })}
+                      <span className="ml-1 text-xs opacity-80">({t(`common.clickType.${map.call.clickType}`)})</span>
                     </button>
                     <button
                       type="button"
-                      disabled={busy === `${tableNumber}-${map.attend}`}
+                      disabled={busy === `${tableNumber}-${map.attend.button}-${map.attend.clickType}`}
                       onClick={() => void press(tableNumber, map.attend)}
                       className="min-h-12 rounded-lg bg-call-attended px-4 py-2 text-sm font-semibold text-call-number disabled:opacity-60"
                     >
-                      {t("demo.attend", { n: map.attend })}
+                      {t("demo.attend", { n: map.attend.button })}
+                      <span className="ml-1 text-xs opacity-80">({t(`common.clickType.${map.attend.clickType}`)})</span>
                     </button>
                   </div>
                 </div>
