@@ -113,7 +113,7 @@ function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={isActive(item.to)}
-                    tooltip={collapsed ? t(item.key) : undefined}
+                    {...(collapsed ? { tooltip: t(item.key) } : {})}
                   >
                     <Link
                       to={item.to}
