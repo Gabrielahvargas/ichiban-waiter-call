@@ -79,6 +79,20 @@ function IntegrationPage() {
 
   useEffect(() => {
     let cancelled = false;
+    void loadLight({ data: undefined } as never)
+      .then((res: SharedLightStatus) => {
+        if (!cancelled) setLight(res);
+      })
+      .catch(() => {
+        if (!cancelled) setLight(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadLight, syncMessage]);
+
+  useEffect(() => {
+    let cancelled = false;
     async function load() {
       const { data } = await supabase
         .from("lighting_commands")
