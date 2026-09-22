@@ -14,9 +14,52 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_pin: {
+        Row: {
+          id: string
+          pin_hash: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          pin_hash: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          pin_hash?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      admin_pin_attempts: {
+        Row: {
+          attempted_at: string
+          id: string
+          screen_id: string | null
+          success: boolean
+        }
+        Insert: {
+          attempted_at?: string
+          id?: string
+          screen_id?: string | null
+          success: boolean
+        }
+        Update: {
+          attempted_at?: string
+          id?: string
+          screen_id?: string | null
+          success?: boolean
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           attended_card_seconds: number
+          dinner_start_hour: number
           gateway_external_id: string | null
           id: string
           integration_status: string
@@ -27,11 +70,13 @@ export type Database = {
           shared_light_alert_color: string
           shared_light_color: string
           sound_alerts: string
+          timezone: string
           updated_at: string
           wait_threshold_seconds: number
         }
         Insert: {
           attended_card_seconds?: number
+          dinner_start_hour?: number
           gateway_external_id?: string | null
           id?: string
           integration_status?: string
@@ -42,11 +87,13 @@ export type Database = {
           shared_light_alert_color?: string
           shared_light_color?: string
           sound_alerts?: string
+          timezone?: string
           updated_at?: string
           wait_threshold_seconds?: number
         }
         Update: {
           attended_card_seconds?: number
+          dinner_start_hour?: number
           gateway_external_id?: string | null
           id?: string
           integration_status?: string
@@ -57,6 +104,7 @@ export type Database = {
           shared_light_alert_color?: string
           shared_light_color?: string
           sound_alerts?: string
+          timezone?: string
           updated_at?: string
           wait_threshold_seconds?: number
         }
@@ -132,6 +180,8 @@ export type Database = {
       }
       calls: {
         Row: {
+          assigned_waiter_id: string | null
+          assigned_waiter_name: string | null
           attended_at: string | null
           attended_by: string | null
           called_at: string
@@ -140,10 +190,14 @@ export type Database = {
           duration_seconds: number | null
           environment: Database["public"]["Enums"]["app_env"]
           id: string
+          service_date: string | null
+          shift: Database["public"]["Enums"]["app_shift"] | null
           status: Database["public"]["Enums"]["call_status"]
           table_number: number
         }
         Insert: {
+          assigned_waiter_id?: string | null
+          assigned_waiter_name?: string | null
           attended_at?: string | null
           attended_by?: string | null
           called_at?: string
@@ -152,10 +206,14 @@ export type Database = {
           duration_seconds?: number | null
           environment?: Database["public"]["Enums"]["app_env"]
           id?: string
+          service_date?: string | null
+          shift?: Database["public"]["Enums"]["app_shift"] | null
           status?: Database["public"]["Enums"]["call_status"]
           table_number: number
         }
         Update: {
+          assigned_waiter_id?: string | null
+          assigned_waiter_name?: string | null
           attended_at?: string | null
           attended_by?: string | null
           called_at?: string
@@ -164,10 +222,20 @@ export type Database = {
           duration_seconds?: number | null
           environment?: Database["public"]["Enums"]["app_env"]
           id?: string
+          service_date?: string | null
+          shift?: Database["public"]["Enums"]["app_shift"] | null
           status?: Database["public"]["Enums"]["call_status"]
           table_number?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "calls_assigned_waiter_id_fkey"
+            columns: ["assigned_waiter_id"]
+            isOneToOne: false
+            referencedRelation: "waiters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dining_tables: {
         Row: {
@@ -193,6 +261,48 @@ export type Database = {
           gateway_external_id?: string | null
           id?: string
           table_number?: number
+        }
+        Relationships: []
+      }
+      display_screens: {
+        Row: {
+          created_at: string
+          device_token_hash: string | null
+          environment: Database["public"]["Enums"]["app_env"]
+          id: string
+          last_seen_at: string | null
+          name: string
+          paired_at: string | null
+          pairing_code: string | null
+          pairing_code_expires_at: string | null
+          table_numbers: number[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          device_token_hash?: string | null
+          environment?: Database["public"]["Enums"]["app_env"]
+          id?: string
+          last_seen_at?: string | null
+          name: string
+          paired_at?: string | null
+          pairing_code?: string | null
+          pairing_code_expires_at?: string | null
+          table_numbers?: number[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          device_token_hash?: string | null
+          environment?: Database["public"]["Enums"]["app_env"]
+          id?: string
+          last_seen_at?: string | null
+          name?: string
+          paired_at?: string | null
+          pairing_code?: string | null
+          pairing_code_expires_at?: string | null
+          table_numbers?: number[] | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -256,6 +366,35 @@ export type Database = {
         }
         Relationships: []
       }
+      screen_pin_sessions: {
+        Row: {
+          created_at: string
+          expires_at: string
+          screen_id: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          screen_id: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          screen_id?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "screen_pin_sessions_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "display_screens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -274,11 +413,116 @@ export type Database = {
         }
         Relationships: []
       }
+      waiter_assignments: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: string
+          service_date: string
+          shift: Database["public"]["Enums"]["app_shift"]
+          table_number: number
+          updated_at: string
+          waiter_id: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          service_date: string
+          shift: Database["public"]["Enums"]["app_shift"]
+          table_number: number
+          updated_at?: string
+          waiter_id: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: string
+          service_date?: string
+          shift?: Database["public"]["Enums"]["app_shift"]
+          table_number?: number
+          updated_at?: string
+          waiter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waiter_assignments_waiter_id_fkey"
+            columns: ["waiter_id"]
+            isOneToOne: false
+            referencedRelation: "waiters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waiters: {
+        Row: {
+          active: boolean
+          code: string | null
+          created_at: string
+          full_name: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code?: string | null
+          created_at?: string
+          full_name: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string | null
+          created_at?: string
+          full_name?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      admin_create_screen: {
+        Args: {
+          p_environment?: Database["public"]["Enums"]["app_env"]
+          p_name: string
+          p_tables?: number[]
+        }
+        Returns: Json
+      }
+      admin_pin_configured: { Args: never; Returns: boolean }
+      admin_regenerate_pairing_code: {
+        Args: { p_screen_id: string }
+        Returns: Json
+      }
+      admin_set_pin: { Args: { p_pin: string }; Returns: Json }
+      admin_set_table_assignment: {
+        Args: {
+          p_service_date: string
+          p_shift: Database["public"]["Enums"]["app_shift"]
+          p_table_number: number
+          p_waiter_id: string
+        }
+        Returns: Json
+      }
+      claim_pairing_code: { Args: { p_code: string }; Returns: Json }
+      current_service_slot: {
+        Args: { p_at?: string }
+        Returns: {
+          service_date: string
+          shift: Database["public"]["Enums"]["app_shift"]
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -286,6 +530,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      hash_token: { Args: { p_token: string }; Returns: string }
       ingest_button_event: {
         Args: {
           p_button: number
@@ -296,10 +541,53 @@ export type Database = {
         }
         Returns: Json
       }
+      screen_assignment_board: {
+        Args: {
+          p_pin_session: string
+          p_screen_id: string
+          p_service_date?: string
+          p_shift?: Database["public"]["Enums"]["app_shift"]
+        }
+        Returns: Json
+      }
+      screen_session_valid: {
+        Args: { p_pin_session: string; p_screen_id: string }
+        Returns: boolean
+      }
+      screen_set_assignment: {
+        Args: {
+          p_pin_session: string
+          p_screen_id: string
+          p_service_date: string
+          p_shift: Database["public"]["Enums"]["app_shift"]
+          p_table_number: number
+          p_waiter_id: string
+        }
+        Returns: Json
+      }
+      screen_state: {
+        Args: { p_device_token: string; p_screen_id: string }
+        Returns: Json
+      }
+      screen_verify_pin: {
+        Args: { p_device_token: string; p_pin: string; p_screen_id: string }
+        Returns: Json
+      }
+      set_table_assignment: {
+        Args: {
+          p_actor?: string
+          p_service_date: string
+          p_shift: Database["public"]["Enums"]["app_shift"]
+          p_table_number: number
+          p_waiter_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_env: "production" | "demo"
       app_role: "admin" | "staff"
+      app_shift: "lunch" | "dinner"
       call_status: "pending" | "attended"
     }
     CompositeTypes: {
@@ -430,6 +718,7 @@ export const Constants = {
     Enums: {
       app_env: ["production", "demo"],
       app_role: ["admin", "staff"],
+      app_shift: ["lunch", "dinner"],
       call_status: ["pending", "attended"],
     },
   },
