@@ -43,8 +43,8 @@ export async function ingestButtonEvent(params: {
     p_idempotency_key: params.idempotencyKey ?? newIdempotencyKey(),
     p_source: params.source ?? "demo",
     p_click_type: params.clickType ?? "single_click",
-    p_device_id: params.deviceId ?? null,
-  });
+    p_device_id: params.deviceId,
+  } as never);
   if (error) throw error;
   return data as unknown as IngestResponse;
 }
