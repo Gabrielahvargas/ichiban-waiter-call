@@ -27,17 +27,20 @@ function newIdempotencyKey(): string {
  */
 export async function ingestButtonEvent(params: {
   tableNumber: number;
-  button: 3 | 4;
+  /** Raw physical switch number (1-4) reported by the device. */
+  button: number;
   environment: AppEnvironment;
   source?: string;
+  clickType?: "single" | "double" | "long";
   idempotencyKey?: string;
 }): Promise<IngestResponse> {
-  const { data, error } = await supabase.rpc("ingest_button_event", {
+  const { data, error } = await supabase.rpc("ingest_button_event" as never, {
     p_table_number: params.tableNumber,
     p_button: params.button,
     p_environment: params.environment,
     p_idempotency_key: params.idempotencyKey ?? newIdempotencyKey(),
     p_source: params.source ?? "demo",
+    p_click_type: params.clickType ?? "single",
   });
   if (error) throw error;
   return data as unknown as IngestResponse;

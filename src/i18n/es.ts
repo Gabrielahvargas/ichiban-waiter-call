@@ -57,8 +57,8 @@ export const es: Dictionary = {
     title: "Modo demostración",
     subtitle:
       "Botones simulados con reloj real. Los registros se guardan aparte de los de producción.",
-    call: "Botón 3 — Llamar",
-    attend: "Botón 4 — Atendida",
+    call: "Botón {n} — Llamar",
+    attend: "Botón {n} — Atendida",
     openScreen: "Abrir pantalla de demostración",
     badge: "DEMO",
     ignoredPending: "Ignorado: esta mesa ya tiene una llamada pendiente",
