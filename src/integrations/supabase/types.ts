@@ -240,7 +240,9 @@ export type Database = {
       dining_tables: {
         Row: {
           alert_bulb_code: string
+          attend_button: number
           button_device_external_id: string | null
+          call_button: number
           created_at: string
           gateway_external_id: string | null
           id: string
@@ -248,7 +250,9 @@ export type Database = {
         }
         Insert: {
           alert_bulb_code: string
+          attend_button?: number
           button_device_external_id?: string | null
+          call_button?: number
           created_at?: string
           gateway_external_id?: string | null
           id?: string
@@ -256,7 +260,9 @@ export type Database = {
         }
         Update: {
           alert_bulb_code?: string
+          attend_button?: number
           button_device_external_id?: string | null
+          call_button?: number
           created_at?: string
           gateway_external_id?: string | null
           id?: string
@@ -535,6 +541,7 @@ export type Database = {
       ingest_button_event: {
         Args: {
           p_button: number
+          p_click_type?: string
           p_environment: Database["public"]["Enums"]["app_env"]
           p_idempotency_key: string
           p_source?: string
