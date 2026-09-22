@@ -10,33 +10,128 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminsRouteImport } from './routes/admins'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as DemoRouteImport } from './routes/demo'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as IntegrationRouteImport } from './routes/integration'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as StatsRouteImport } from './routes/stats'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminsRoute = AdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegrationRoute = IntegrationRouteImport.update({
+  id: '/integration',
+  path: '/integration',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admins': typeof AdminsRoute
+  '/auth': typeof AuthRoute
+  '/demo': typeof DemoRoute
+  '/history': typeof HistoryRoute
+  '/integration': typeof IntegrationRoute
+  '/settings': typeof SettingsRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admins': typeof AdminsRoute
+  '/auth': typeof AuthRoute
+  '/demo': typeof DemoRoute
+  '/history': typeof HistoryRoute
+  '/integration': typeof IntegrationRoute
+  '/settings': typeof SettingsRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admins': typeof AdminsRoute
+  '/auth': typeof AuthRoute
+  '/demo': typeof DemoRoute
+  '/history': typeof HistoryRoute
+  '/integration': typeof IntegrationRoute
+  '/settings': typeof SettingsRoute
+  '/stats': typeof StatsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admins'
+    | '/auth'
+    | '/demo'
+    | '/history'
+    | '/integration'
+    | '/settings'
+    | '/stats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admins'
+    | '/auth'
+    | '/demo'
+    | '/history'
+    | '/integration'
+    | '/settings'
+    | '/stats'
+  id:
+    | '__root__'
+    | '/'
+    | '/admins'
+    | '/auth'
+    | '/demo'
+    | '/history'
+    | '/integration'
+    | '/settings'
+    | '/stats'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminsRoute: typeof AdminsRoute
+  AuthRoute: typeof AuthRoute
+  DemoRoute: typeof DemoRoute
+  HistoryRoute: typeof HistoryRoute
+  IntegrationRoute: typeof IntegrationRoute
+  SettingsRoute: typeof SettingsRoute
+  StatsRoute: typeof StatsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +143,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admins': {
+      id: '/admins'
+      path: '/admins'
+      fullPath: '/admins'
+      preLoaderRoute: typeof AdminsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/integration': {
+      id: '/integration'
+      path: '/integration'
+      fullPath: '/integration'
+      preLoaderRoute: typeof IntegrationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminsRoute: AdminsRoute,
+  AuthRoute: AuthRoute,
+  DemoRoute: DemoRoute,
+  HistoryRoute: HistoryRoute,
+  IntegrationRoute: IntegrationRoute,
+  SettingsRoute: SettingsRoute,
+  StatsRoute: StatsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
