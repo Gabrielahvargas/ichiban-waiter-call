@@ -49,14 +49,14 @@ function IntegrationPage() {
 
     void supabase
       .from("button_events")
-      .select("created_at, source")
-      .order("created_at", { ascending: false })
+      .select("received_at, source")
+      .order("received_at", { ascending: false })
       .limit(50)
       .then(({ data }) => {
         if (cancelled) return;
-        const rows = (data ?? []) as { created_at: string; source: string | null }[];
+        const rows = (data ?? []) as { received_at: string; source: string | null }[];
         const hardware = rows.find((r) => (r.source ?? "").startsWith("gateway"));
-        setLastHardwareEvent(hardware?.created_at ?? null);
+        setLastHardwareEvent(hardware?.received_at ?? null);
         setDemoOnly(!hardware && rows.length > 0);
       });
 
