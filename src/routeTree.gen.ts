@@ -20,6 +20,7 @@ import { Route as ScreensRouteImport } from './routes/screens'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as WaitersRouteImport } from './routes/waiters'
+import { Route as ApiPublicTuyaEventsRouteImport } from './routes/api/public/tuya-events'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -76,6 +77,11 @@ const WaitersRoute = WaitersRouteImport.update({
   path: '/waiters',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTuyaEventsRoute = ApiPublicTuyaEventsRouteImport.update({
+  id: '/api/public/tuya-events',
+  path: '/api/public/tuya-events',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/waiters': typeof WaitersRoute
+  '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/waiters': typeof WaitersRoute
+  '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/waiters': typeof WaitersRoute
+  '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/stats'
     | '/waiters'
+    | '/api/public/tuya-events'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,6 +154,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/stats'
     | '/waiters'
+    | '/api/public/tuya-events'
   id:
     | '__root__'
     | '/'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/stats'
     | '/waiters'
+    | '/api/public/tuya-events'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,6 +183,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
   WaitersRoute: typeof WaitersRoute
+  ApiPublicTuyaEventsRoute: typeof ApiPublicTuyaEventsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WaitersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/tuya-events': {
+      id: '/api/public/tuya-events'
+      path: '/api/public/tuya-events'
+      fullPath: '/api/public/tuya-events'
+      preLoaderRoute: typeof ApiPublicTuyaEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
   WaitersRoute: WaitersRoute,
+  ApiPublicTuyaEventsRoute: ApiPublicTuyaEventsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
