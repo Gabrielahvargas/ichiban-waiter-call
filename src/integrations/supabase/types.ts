@@ -69,6 +69,7 @@ export type Database = {
           output_mode: string
           shared_light_alert_color: string
           shared_light_color: string
+          shared_light_device_id: string | null
           sound_alerts: string
           timezone: string
           updated_at: string
@@ -86,6 +87,7 @@ export type Database = {
           output_mode?: string
           shared_light_alert_color?: string
           shared_light_color?: string
+          shared_light_device_id?: string | null
           sound_alerts?: string
           timezone?: string
           updated_at?: string
@@ -103,6 +105,7 @@ export type Database = {
           output_mode?: string
           shared_light_alert_color?: string
           shared_light_color?: string
+          shared_light_device_id?: string | null
           sound_alerts?: string
           timezone?: string
           updated_at?: string
