@@ -182,6 +182,83 @@ function IntegrationPage() {
 
         <section className="mt-4 rounded-xl border border-border bg-card p-5">
           <h2 className="font-display text-xl font-semibold uppercase tracking-wide">
+            {t("integration.sharedLightTitle")}
+          </h2>
+          <p className="mt-1 mb-3 text-sm text-muted-foreground">{t("integration.sharedLightNote")}</p>
+          {light === null ? (
+            <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
+          ) : !light.configured ? (
+            <p className="text-sm text-status-down">{t("integration.sharedLightMissing")}</p>
+          ) : (
+            <dl className="space-y-2 text-sm">
+              <div>
+                <dt className="text-muted-foreground">{t("integration.sharedLightDevice")}</dt>
+                <dd className="font-mono text-xs break-all">
+                  {light.deviceName ? `${light.deviceName} · ` : ""}
+                  {light.deviceId}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">{t("integration.sharedLightLinked")}</dt>
+                <dd className={light.linked ? "font-semibold text-status-ok" : "font-semibold text-status-down"}>
+                  {light.linked ? t("integration.sharedLightLinked") : t("integration.sharedLightNotLinked")}
+                  {light.linked
+                    ? ` · ${light.online ? t("integration.sharedLightOnline") : t("integration.sharedLightOffline")}`
+                    : ""}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">{t("integration.sharedLightSupport")}</dt>
+                <dd>
+                  {[
+                    light.supportsColour ? t("integration.sharedLightColour") : null,
+                    light.supportsWhite ? t("integration.sharedLightWhite") : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ") || "—"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">{t("integration.sharedLightPending")}</dt>
+                <dd className="tabular">{light.pending}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">{t("integration.sharedLightCurrent")}</dt>
+                <dd className="font-semibold">
+                  {light.pending > 0 ? t("integration.sharedLightRed") : t("integration.sharedLightWhiteState")}
+                </dd>
+              </div>
+            </dl>
+          )}
+          {light?.error ? <p className="mt-2 text-sm text-status-down">{light.error}</p> : null}
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+              disabled={syncing || !light?.configured}
+              onClick={() => {
+                setSyncing(true);
+                setSyncMessage(null);
+                void resync({ data: undefined } as never)
+                  .then((res: { status: string; detail?: string }) => {
+                    setSyncMessage(
+                      res.status === "applied"
+                        ? t("integration.sharedLightApplied")
+                        : `${t("integration.sharedLightError")}${res.detail ? ` — ${res.detail}` : ""}`,
+                    );
+                  })
+                  .catch(() => setSyncMessage(t("integration.sharedLightError")))
+                  .finally(() => setSyncing(false));
+              }}
+            >
+              {t("integration.sharedLightResync")}
+            </button>
+            {syncMessage ? <span className="text-sm text-muted-foreground">{syncMessage}</span> : null}
+          </div>
+        </section>
+
+        <section className="mt-4 rounded-xl border border-border bg-card p-5">
+          <h2 className="font-display text-xl font-semibold uppercase tracking-wide">
             {t("integration.offlineTitle")}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">{t("integration.offlineNote")}</p>
