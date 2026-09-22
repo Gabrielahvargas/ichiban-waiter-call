@@ -1,13 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
+import { supabase } from "@/integrations/supabase/client";
 import { CallsScreen } from "@/components/CallsScreen";
 import { Protected } from "@/components/Protected";
 import { useI18n } from "@/i18n";
 import { ingestButtonEvent, type IngestResult } from "@/modules/events/ingest";
-import { TABLE_NUMBERS } from "@/modules/shared/types";
+import { TABLE_NUMBERS, type DiningTable } from "@/modules/shared/types";
 
 export const Route = createFileRoute("/demo")({
   head: () => ({
@@ -30,8 +31,22 @@ export const Route = createFileRoute("/demo")({
 function DemoPage() {
   const { t } = useI18n();
   const [busy, setBusy] = useState<string | null>(null);
+  const [tables, setTables] = useState<DiningTable[]>([]);
 
-  async function press(tableNumber: number, button: 3 | 4) {
+  useEffect(() => {
+    void supabase
+      .from("dining_tables")
+      .select("*")
+      .order("table_number")
+      .then(({ data }) => setTables((data ?? []) as DiningTable[]));
+  }, []);
+
+  function mappingFor(tableNumber: number) {
+    const row = tables.find((tbl) => tbl.table_number === tableNumber);
+    return { call: row?.call_button ?? 3, attend: row?.attend_button ?? 4 };
+  }
+
+  async function press(tableNumber: number, button: number) {
     const key = `${tableNumber}-${button}`;
     setBusy(key);
     try {
@@ -59,32 +74,35 @@ function DemoPage() {
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,420px)_1fr]">
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
-            {TABLE_NUMBERS.map((tableNumber) => (
-              <div
-                key={tableNumber}
-                className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
-              >
-                <span className="font-display text-3xl font-bold tabular">{tableNumber}</span>
-                <div className="ml-auto flex gap-2">
-                  <button
-                    type="button"
-                    disabled={busy === `${tableNumber}-3`}
-                    onClick={() => void press(tableNumber, 3)}
-                    className="min-h-12 rounded-lg bg-call-pending px-4 py-2 text-sm font-semibold text-call-number disabled:opacity-60"
-                  >
-                    {t("demo.call")}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={busy === `${tableNumber}-4`}
-                    onClick={() => void press(tableNumber, 4)}
-                    className="min-h-12 rounded-lg bg-call-attended px-4 py-2 text-sm font-semibold text-call-number disabled:opacity-60"
-                  >
-                    {t("demo.attend")}
-                  </button>
+            {TABLE_NUMBERS.map((tableNumber) => {
+              const map = mappingFor(tableNumber);
+              return (
+                <div
+                  key={tableNumber}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
+                >
+                  <span className="font-display text-3xl font-bold tabular">{tableNumber}</span>
+                  <div className="ml-auto flex gap-2">
+                    <button
+                      type="button"
+                      disabled={busy === `${tableNumber}-${map.call}`}
+                      onClick={() => void press(tableNumber, map.call)}
+                      className="min-h-12 rounded-lg bg-call-pending px-4 py-2 text-sm font-semibold text-call-number disabled:opacity-60"
+                    >
+                      {t("demo.call", { n: map.call })}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy === `${tableNumber}-${map.attend}`}
+                      onClick={() => void press(tableNumber, map.attend)}
+                      className="min-h-12 rounded-lg bg-call-attended px-4 py-2 text-sm font-semibold text-call-number disabled:opacity-60"
+                    >
+                      {t("demo.attend", { n: map.attend })}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="rounded-2xl border border-border bg-background p-2">

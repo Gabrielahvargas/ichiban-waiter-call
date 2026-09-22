@@ -78,12 +78,18 @@ function SettingsPage() {
   }
 
   async function saveTable(table: DiningTable) {
+    if (table.call_button === table.attend_button) {
+      toast.error(t("settings.sameButtonError", { table: table.table_number }));
+      return;
+    }
     const { error } = await supabase
       .from("dining_tables")
       .update({
         alert_bulb_code: table.alert_bulb_code,
         button_device_external_id: table.button_device_external_id,
         gateway_external_id: table.gateway_external_id,
+        call_button: table.call_button,
+        attend_button: table.attend_button,
       })
       .eq("id", table.id);
     if (error) toast.error(t("errors.saveFailed"));
@@ -213,6 +219,58 @@ function SettingsPage() {
             />
           </Section>
 
+          <Section title={t("settings.buttonsSection")} className="lg:col-span-2">
+            <p className="mb-3 text-sm text-muted-foreground">{t("settings.buttonsHelp")}</p>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {tables.map((table, index) => {
+                const invalid = table.call_button === table.attend_button;
+                return (
+                  <div key={`buttons-${table.id}`} className="rounded-lg border border-border p-3">
+                    <div className="flex items-baseline gap-3">
+                      <p className="font-display text-2xl font-bold tabular">{table.table_number}</p>
+                      <span className="truncate text-xs text-muted-foreground">
+                        {t("settings.buttonId")}: {table.button_device_external_id || "—"}
+                      </span>
+                    </div>
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <SwitchChoice
+                        label={t("settings.callButton")}
+                        value={table.call_button}
+                        onChange={(v) => {
+                          const next = [...tables];
+                          next[index] = { ...table, call_button: v };
+                          setTables(next);
+                        }}
+                      />
+                      <SwitchChoice
+                        label={t("settings.attendButton")}
+                        value={table.attend_button}
+                        onChange={(v) => {
+                          const next = [...tables];
+                          next[index] = { ...table, attend_button: v };
+                          setTables(next);
+                        }}
+                      />
+                    </div>
+                    {invalid ? (
+                      <p className="mt-2 text-sm font-medium text-destructive">
+                        {t("settings.sameButtonError", { table: table.table_number })}
+                      </p>
+                    ) : null}
+                    <button
+                      type="button"
+                      disabled={invalid}
+                      onClick={() => void saveTable(tables[index]!)}
+                      className="mt-3 rounded-md border border-border px-3 py-1.5 text-sm font-medium disabled:opacity-50"
+                    >
+                      {t("common.save")}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </Section>
+
           <Section title={t("settings.bulbsSection")} className="lg:col-span-2">
             <div className="grid gap-3 md:grid-cols-2">
               {tables.map((table, index) => (
@@ -319,6 +377,34 @@ function PinSection() {
         {t("common.save")}
       </button>
     </div>
+  );
+}
+
+function SwitchChoice({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <label className="block text-sm text-muted-foreground">
+      {label}
+      <select
+        className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-foreground"
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      >
+        {[1, 2, 3, 4].map((n) => (
+          <option key={n} value={n}>
+            {t("settings.switchOption", { n })}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
