@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as IntegrationRouteImport } from './routes/integration'
+import { Route as ScreenRouteImport } from './routes/screen'
 import { Route as ScreensRouteImport } from './routes/screens'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StatsRouteImport } from './routes/stats'
@@ -50,6 +51,11 @@ const IntegrationRoute = IntegrationRouteImport.update({
   path: '/integration',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScreenRoute = ScreenRouteImport.update({
+  id: '/screen',
+  path: '/screen',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScreensRoute = ScreensRouteImport.update({
   id: '/screens',
   path: '/screens',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/demo': typeof DemoRoute
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
+  '/screen': typeof ScreenRoute
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/demo': typeof DemoRoute
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
+  '/screen': typeof ScreenRoute
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/demo': typeof DemoRoute
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
+  '/screen': typeof ScreenRoute
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/history'
     | '/integration'
+    | '/screen'
     | '/screens'
     | '/settings'
     | '/stats'
@@ -129,6 +139,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/history'
     | '/integration'
+    | '/screen'
     | '/screens'
     | '/settings'
     | '/stats'
@@ -141,6 +152,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/history'
     | '/integration'
+    | '/screen'
     | '/screens'
     | '/settings'
     | '/stats'
@@ -154,6 +166,7 @@ export interface RootRouteChildren {
   DemoRoute: typeof DemoRoute
   HistoryRoute: typeof HistoryRoute
   IntegrationRoute: typeof IntegrationRoute
+  ScreenRoute: typeof ScreenRoute
   ScreensRoute: typeof ScreensRoute
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/screen': {
+      id: '/screen'
+      path: '/screen'
+      fullPath: '/screen'
+      preLoaderRoute: typeof ScreenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/screens': {
       id: '/screens'
       path: '/screens'
@@ -242,6 +262,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoRoute: DemoRoute,
   HistoryRoute: HistoryRoute,
   IntegrationRoute: IntegrationRoute,
+  ScreenRoute: ScreenRoute,
   ScreensRoute: ScreensRoute,
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,

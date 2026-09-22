@@ -349,7 +349,8 @@ function PinOverlay({
       }
       if (isOk(e)) {
         e.preventDefault();
-        press(KEYPAD[focus]);
+        const key = KEYPAD[focus];
+        if (key) press(key);
         return;
       }
       const moves: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 3, ArrowUp: -3 };
@@ -422,7 +423,7 @@ function MenuOverlay({
       if (e.key === "ArrowUp") setFocus((f) => Math.max(0, f - 1));
       if (isOk(e)) {
         e.preventDefault();
-        items[focus].run();
+        items[focus]?.run();
       }
     }
     window.addEventListener("keydown", onKey);
@@ -553,7 +554,8 @@ function AssignOverlay({
           const w = waiters[focus];
           if (w) setSelectedWaiter((prev) => (prev === w.id ? null : w.id));
         } else {
-          void toggleTable(TABLE_NUMBERS[focus]);
+          const num = TABLE_NUMBERS[focus];
+          if (num !== undefined) void toggleTable(num);
         }
       }
     }
