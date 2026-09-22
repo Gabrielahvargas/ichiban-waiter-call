@@ -6,37 +6,55 @@ import { Protected } from "@/components/Protected";
 import { EnvironmentToggle, useCallHistory } from "@/routes/history";
 import { useI18n } from "@/i18n";
 import { formatElapsed } from "@/modules/calls/useCalls";
-import type { AppEnvironment } from "@/modules/shared/types";
+import { todayIso, useWaiters } from "@/modules/waiters/api";
+import { TABLE_NUMBERS, type AppEnvironment, type Shift } from "@/modules/shared/types";
 
 export const Route = createFileRoute("/stats")({
   head: () => ({
     meta: [
       { title: "Statistics — Ichiban Waiter Calls" },
-      { name: "description", content: "Average and longest response times, plus call volume by table and hour." },
+      {
+        name: "description",
+        content: "Response times and call volume by waiter, table, shift and hour.",
+      },
       { property: "og:title", content: "Statistics — Ichiban Waiter Calls" },
       {
         property: "og:description",
-        content: "Average and longest response times, plus call volume by table and hour.",
+        content: "Response times and call volume by waiter, table, shift and hour.",
       },
     ],
   }),
   component: StatsPage,
 });
 
+function daysAgoIso(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 function StatsPage() {
   const { t } = useI18n();
+  const { waiters } = useWaiters();
   const [environment, setEnvironment] = useState<AppEnvironment>("production");
-  const { calls, loading } = useCallHistory(environment);
+  const [from, setFrom] = useState(daysAgoIso(30));
+  const [to, setTo] = useState(todayIso());
+  const [shift, setShift] = useState<Shift | "all">("all");
+  const [waiterId, setWaiterId] = useState<string | "all" | "none">("all");
+  const [tableNumber, setTableNumber] = useState<number | "all">("all");
+
+  const { calls, loading } = useCallHistory(environment, { from, to, shift, waiterId, tableNumber });
 
   const stats = useMemo(() => {
-    const done = calls.filter((c) => c.duration_seconds != null);
-    const durations = done.map((c) => c.duration_seconds as number);
+    const durations = calls.filter((c) => c.duration_seconds != null).map((c) => c.duration_seconds as number);
     const byTable = new Map<number, { count: number; total: number; max: number }>();
     const byHour = new Map<number, number>();
+    const byWaiter = new Map<string, { name: string; count: number; total: number; max: number }>();
 
     for (const call of calls) {
       const hour = new Date(call.called_at).getHours();
       byHour.set(hour, (byHour.get(hour) ?? 0) + 1);
+
       const entry = byTable.get(call.table_number) ?? { count: 0, total: 0, max: 0 };
       entry.count += 1;
       if (call.duration_seconds != null) {
@@ -44,6 +62,20 @@ function StatsPage() {
         entry.max = Math.max(entry.max, call.duration_seconds);
       }
       byTable.set(call.table_number, entry);
+
+      const key = call.assigned_waiter_id ?? "none";
+      const w = byWaiter.get(key) ?? {
+        name: call.assigned_waiter_name ?? t("metrics.unassigned"),
+        count: 0,
+        total: 0,
+        max: 0,
+      };
+      w.count += 1;
+      if (call.duration_seconds != null) {
+        w.total += call.duration_seconds;
+        w.max = Math.max(w.max, call.duration_seconds);
+      }
+      byWaiter.set(key, w);
     }
 
     return {
@@ -52,8 +84,9 @@ function StatsPage() {
       max: durations.length ? Math.max(...durations) : 0,
       byTable: [...byTable.entries()].sort((a, b) => a[0] - b[0]),
       byHour: [...byHour.entries()].sort((a, b) => a[0] - b[0]),
+      byWaiter: [...byWaiter.entries()].sort((a, b) => b[1].count - a[1].count),
     };
-  }, [calls]);
+  }, [calls, t]);
 
   return (
     <AppShell>
@@ -62,6 +95,75 @@ function StatsPage() {
           <h1 className="font-display text-3xl font-bold uppercase tracking-wide">{t("stats.title")}</h1>
           <EnvironmentToggle value={environment} onChange={setEnvironment} />
         </div>
+
+        <section className="mb-5 rounded-xl border border-border bg-card p-4">
+          <h2 className="mb-3 font-display text-lg font-semibold uppercase tracking-wide">
+            {t("metrics.filters")}
+          </h2>
+          <div className="flex flex-wrap items-end gap-3 text-sm">
+            <label className="text-muted-foreground">
+              {t("metrics.from")}
+              <input
+                type="date"
+                value={from}
+                onChange={(e) => setFrom(e.target.value)}
+                className="mt-1 block rounded-md border border-input bg-background px-3 py-2 text-foreground"
+              />
+            </label>
+            <label className="text-muted-foreground">
+              {t("metrics.to")}
+              <input
+                type="date"
+                value={to}
+                onChange={(e) => setTo(e.target.value)}
+                className="mt-1 block rounded-md border border-input bg-background px-3 py-2 text-foreground"
+              />
+            </label>
+            <label className="text-muted-foreground">
+              {t("waiters.shift")}
+              <select
+                value={shift}
+                onChange={(e) => setShift(e.target.value as Shift | "all")}
+                className="mt-1 block rounded-md border border-input bg-background px-3 py-2 text-foreground"
+              >
+                <option value="all">{t("metrics.allShifts")}</option>
+                <option value="lunch">{t("waiters.lunch")}</option>
+                <option value="dinner">{t("waiters.dinner")}</option>
+              </select>
+            </label>
+            <label className="text-muted-foreground">
+              {t("metrics.waiter")}
+              <select
+                value={waiterId}
+                onChange={(e) => setWaiterId(e.target.value)}
+                className="mt-1 block rounded-md border border-input bg-background px-3 py-2 text-foreground"
+              >
+                <option value="all">{t("metrics.allWaiters")}</option>
+                <option value="none">{t("metrics.unassigned")}</option>
+                {waiters.map((w) => (
+                  <option key={w.id} value={w.id}>
+                    {w.full_name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="text-muted-foreground">
+              {t("common.table")}
+              <select
+                value={String(tableNumber)}
+                onChange={(e) => setTableNumber(e.target.value === "all" ? "all" : Number(e.target.value))}
+                className="mt-1 block rounded-md border border-input bg-background px-3 py-2 text-foreground"
+              >
+                <option value="all">{t("metrics.allTables")}</option>
+                {TABLE_NUMBERS.map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+        </section>
 
         {loading ? (
           <p className="text-muted-foreground">{t("common.loading")}</p>
@@ -76,6 +178,29 @@ function StatsPage() {
             </div>
 
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              <Panel title={t("metrics.byWaiter")}>
+                <table className="w-full text-left text-sm">
+                  <thead className="text-muted-foreground">
+                    <tr>
+                      <th className="py-2">{t("metrics.waiter")}</th>
+                      <th className="py-2">{t("stats.calls")}</th>
+                      <th className="py-2">{t("stats.average")}</th>
+                      <th className="py-2">{t("stats.max")}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stats.byWaiter.map(([key, v]) => (
+                      <tr key={key} className="border-t border-border">
+                        <td className="py-2 font-semibold">{v.name}</td>
+                        <td className="py-2 tabular">{v.count}</td>
+                        <td className="py-2 tabular">{formatElapsed(v.count ? v.total / v.count : 0)}</td>
+                        <td className="py-2 tabular">{formatElapsed(v.max)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </Panel>
+
               <Panel title={t("stats.byTable")}>
                 <table className="w-full text-left text-sm">
                   <thead className="text-muted-foreground">
