@@ -412,7 +412,7 @@ function PinSection() {
 }
 
 function ClickChoice({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const t = useTranslation();
+  const { t } = useI18n();
   return (
     <label className="block text-xs text-muted-foreground">
       {t("settings.clickTypeLabel")}
