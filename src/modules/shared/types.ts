@@ -70,6 +70,10 @@ export interface DiningTable {
   alert_bulb_code: string;
   button_device_external_id: string | null;
   gateway_external_id: string | null;
+  /** Physical switch (1-4) on this table's Zigbee remote that calls a waiter. */
+  call_button: number;
+  /** Physical switch (1-4) that marks the call as attended. */
+  attend_button: number;
 }
 
 export interface Bulb {
