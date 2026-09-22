@@ -66,6 +66,25 @@ export function useLanguagePreference() {
   return { language, persist };
 }
 
+/** Collapses the sidebar automatically after the user selects a route. */
+function RouteCollapseWatcher() {
+  const { state, setOpen } = useSidebar();
+  const currentPath = useRouterState({
+    select: (router) => router.location.pathname,
+  });
+  const previousPath = useRef(currentPath);
+
+  useEffect(() => {
+    if (previousPath.current === currentPath) return;
+    previousPath.current = currentPath;
+    if (state === "expanded") {
+      setOpen(false);
+    }
+  }, [currentPath, state, setOpen]);
+
+  return null;
+}
+
 function AppSidebar() {
   const { t } = useI18n();
   const { state } = useSidebar();
@@ -91,7 +110,11 @@ function AppSidebar() {
             <SidebarMenu>
               {NAV.map((item) => (
                 <SidebarMenuItem key={item.to}>
-                  <SidebarMenuButton asChild isActive={isActive(item.to)}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive(item.to)}
+                    {...(collapsed ? { tooltip: t(item.key) } : {})}
+                  >
                     <Link
                       to={item.to}
                       className="flex items-center gap-2 hover:bg-muted/50"
@@ -122,8 +145,9 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <div className="flex min-h-screen w-full bg-background">
+        <RouteCollapseWatcher />
         <AppSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-30 flex h-12 items-center gap-3 border-b border-border bg-card/95 px-4 backdrop-blur">
