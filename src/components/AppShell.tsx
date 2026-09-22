@@ -53,7 +53,7 @@ export function AppShell({ children, wide = false }: { children: ReactNode; wide
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdropizzle backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-4 py-3">
           <Link to="/" className="mr-2 font-display text-2xl font-bold uppercase tracking-wide">
             Ichiban
