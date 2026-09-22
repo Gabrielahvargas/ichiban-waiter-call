@@ -43,14 +43,23 @@ function DemoPage() {
 
   function mappingFor(tableNumber: number) {
     const row = tables.find((tbl) => tbl.table_number === tableNumber);
-    return { call: row?.call_button ?? 3, attend: row?.attend_button ?? 4 };
+    return {
+      call: { button: row?.call_button ?? 3, clickType: row?.call_click_type ?? "single_click" },
+      attend: { button: row?.attend_button ?? 4, clickType: row?.attend_click_type ?? "single_click" },
+    };
   }
 
-  async function press(tableNumber: number, button: number) {
-    const key = `${tableNumber}-${button}`;
+  async function press(tableNumber: number, config: { button: number; clickType: string }) {
+    const key = `${tableNumber}-${config.button}-${config.clickType}`;
     setBusy(key);
     try {
-      const res = await ingestButtonEvent({ tableNumber, button, environment: "demo", source: "demo_panel" });
+      const res = await ingestButtonEvent({
+        tableNumber,
+        button: config.button,
+        environment: "demo",
+        source: "demo_panel",
+        clickType: config.clickType as "single_click" | "double_click" | "long_click",
+      });
       toast(messageFor(res.result, tableNumber, t));
     } catch {
       toast.error(t("errors.generic"));
