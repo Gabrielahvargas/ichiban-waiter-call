@@ -12,14 +12,17 @@ import { z } from "zod";
  */
 
 const payloadSchema = z.object({
-  table_number: z.number().int().positive(),
-  /** Raw switch number reported by the device (switch_1 .. switch_4). The
-   *  server resolves it into CALL or ATTEND using this table's mapping. */
+  /** Optional table number; if omitted, the device_id is used to resolve the table. */
+  table_number: z.number().int().positive().optional(),
+  /** Raw switch number reported by the device (1 .. 4). The server resolves it
+   *  into CALL or ATTEND using this table's configurable mapping. */
   button: z.number().int().min(1).max(4),
-  event_id: z.string().min(6).max(200),
-  device_id: z.string().max(200).optional(),
-  /** Only single clicks act today; other click types are ignored server-side. */
-  click_type: z.enum(["single", "double", "long"]).optional(),
+  /** Stable idempotency key from the bridge (e.g. pulsar messageId or dataId). */
+  event_id: z.string().min(6).max(400),
+  /** Tuya device ID of the physical Zigbee button. Required for bridge events. */
+  device_id: z.string().min(6).max(200),
+  /** Normalized click type; single_click, double_click, long_click. */
+  click_type: z.enum(["single_click", "double_click", "long_click"]).default("single_click"),
 });
 
 function json(body: unknown, status: number): Response {
