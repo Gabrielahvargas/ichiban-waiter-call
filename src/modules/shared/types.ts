@@ -95,6 +95,8 @@ export interface AppSettings {
   shared_light_alert_color: string;
   log_retention_days: number;
   gateway_external_id: string | null;
+  timezone: string;
+  dinner_start_hour: number;
   integration_status: string;
   updated_at: string;
 }
