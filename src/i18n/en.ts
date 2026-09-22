@@ -34,6 +34,11 @@ export const en = {
     back: "Back",
     refresh: "Refresh",
     unknown: "Unknown",
+    clickType: {
+      single_click: "single click",
+      double_click: "double click",
+      long_click: "long press",
+    },
   },
   live: {
     title: "Live calls",
