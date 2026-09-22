@@ -14,16 +14,293 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      app_settings: {
+        Row: {
+          attended_card_seconds: number
+          gateway_external_id: string | null
+          id: string
+          integration_status: string
+          local_red_seconds: number
+          log_retention_days: number
+          new_call_rule: string
+          output_mode: string
+          shared_light_alert_color: string
+          shared_light_color: string
+          sound_alerts: string
+          updated_at: string
+          wait_threshold_seconds: number
+        }
+        Insert: {
+          attended_card_seconds?: number
+          gateway_external_id?: string | null
+          id?: string
+          integration_status?: string
+          local_red_seconds?: number
+          log_retention_days?: number
+          new_call_rule?: string
+          output_mode?: string
+          shared_light_alert_color?: string
+          shared_light_color?: string
+          sound_alerts?: string
+          updated_at?: string
+          wait_threshold_seconds?: number
+        }
+        Update: {
+          attended_card_seconds?: number
+          gateway_external_id?: string | null
+          id?: string
+          integration_status?: string
+          local_red_seconds?: number
+          log_retention_days?: number
+          new_call_rule?: string
+          output_mode?: string
+          shared_light_alert_color?: string
+          shared_light_color?: string
+          sound_alerts?: string
+          updated_at?: string
+          wait_threshold_seconds?: number
+        }
+        Relationships: []
+      }
+      bulbs: {
+        Row: {
+          bulb_code: string
+          created_at: string
+          external_id: string | null
+          id: string
+          table_number: number
+        }
+        Insert: {
+          bulb_code: string
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          table_number: number
+        }
+        Update: {
+          bulb_code?: string
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          table_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bulbs_table_number_fkey"
+            columns: ["table_number"]
+            isOneToOne: false
+            referencedRelation: "dining_tables"
+            referencedColumns: ["table_number"]
+          },
+        ]
+      }
+      button_events: {
+        Row: {
+          button: number
+          call_id: string | null
+          environment: Database["public"]["Enums"]["app_env"]
+          id: string
+          idempotency_key: string
+          received_at: string
+          result: string | null
+          source: string
+          table_number: number
+        }
+        Insert: {
+          button: number
+          call_id?: string | null
+          environment?: Database["public"]["Enums"]["app_env"]
+          id?: string
+          idempotency_key: string
+          received_at?: string
+          result?: string | null
+          source?: string
+          table_number: number
+        }
+        Update: {
+          button?: number
+          call_id?: string | null
+          environment?: Database["public"]["Enums"]["app_env"]
+          id?: string
+          idempotency_key?: string
+          received_at?: string
+          result?: string | null
+          source?: string
+          table_number?: number
+        }
+        Relationships: []
+      }
+      calls: {
+        Row: {
+          attended_at: string | null
+          attended_by: string | null
+          called_at: string
+          cooldown_until: string | null
+          created_at: string
+          duration_seconds: number | null
+          environment: Database["public"]["Enums"]["app_env"]
+          id: string
+          status: Database["public"]["Enums"]["call_status"]
+          table_number: number
+        }
+        Insert: {
+          attended_at?: string | null
+          attended_by?: string | null
+          called_at?: string
+          cooldown_until?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          environment?: Database["public"]["Enums"]["app_env"]
+          id?: string
+          status?: Database["public"]["Enums"]["call_status"]
+          table_number: number
+        }
+        Update: {
+          attended_at?: string | null
+          attended_by?: string | null
+          called_at?: string
+          cooldown_until?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          environment?: Database["public"]["Enums"]["app_env"]
+          id?: string
+          status?: Database["public"]["Enums"]["call_status"]
+          table_number?: number
+        }
+        Relationships: []
+      }
+      dining_tables: {
+        Row: {
+          alert_bulb_code: string
+          button_device_external_id: string | null
+          created_at: string
+          gateway_external_id: string | null
+          id: string
+          table_number: number
+        }
+        Insert: {
+          alert_bulb_code: string
+          button_device_external_id?: string | null
+          created_at?: string
+          gateway_external_id?: string | null
+          id?: string
+          table_number: number
+        }
+        Update: {
+          alert_bulb_code?: string
+          button_device_external_id?: string | null
+          created_at?: string
+          gateway_external_id?: string | null
+          id?: string
+          table_number?: number
+        }
+        Relationships: []
+      }
+      lighting_commands: {
+        Row: {
+          action: string
+          bulb_code: string | null
+          color: string | null
+          created_at: string
+          dispatch_status: string
+          duration_ms: number | null
+          environment: Database["public"]["Enums"]["app_env"]
+          id: string
+          target: string
+        }
+        Insert: {
+          action: string
+          bulb_code?: string | null
+          color?: string | null
+          created_at?: string
+          dispatch_status?: string
+          duration_ms?: number | null
+          environment?: Database["public"]["Enums"]["app_env"]
+          id?: string
+          target: string
+        }
+        Update: {
+          action?: string
+          bulb_code?: string | null
+          color?: string | null
+          created_at?: string
+          dispatch_status?: string
+          duration_ms?: number | null
+          environment?: Database["public"]["Enums"]["app_env"]
+          id?: string
+          target?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          language: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          language?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          language?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      ingest_button_event: {
+        Args: {
+          p_button: number
+          p_environment: Database["public"]["Enums"]["app_env"]
+          p_idempotency_key: string
+          p_source?: string
+          p_table_number: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_env: "production" | "demo"
+      app_role: "admin" | "staff"
+      call_status: "pending" | "attended"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +427,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_env: ["production", "demo"],
+      app_role: ["admin", "staff"],
+      call_status: ["pending", "attended"],
+    },
   },
 } as const
