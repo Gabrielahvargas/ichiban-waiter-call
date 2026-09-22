@@ -77,8 +77,12 @@ function SettingsPage() {
     else toast.success(t("common.saved"));
   }
 
+  function tableActionConflict(table: DiningTable) {
+    return table.call_button === table.attend_button && table.call_click_type === table.attend_click_type;
+  }
+
   async function saveTable(table: DiningTable) {
-    if (table.call_button === table.attend_button) {
+    if (tableActionConflict(table)) {
       toast.error(t("settings.sameButtonError", { table: table.table_number }));
       return;
     }
@@ -89,7 +93,9 @@ function SettingsPage() {
         button_device_external_id: table.button_device_external_id,
         gateway_external_id: table.gateway_external_id,
         call_button: table.call_button,
+        call_click_type: table.call_click_type,
         attend_button: table.attend_button,
+        attend_click_type: table.attend_click_type,
       })
       .eq("id", table.id);
     if (error) toast.error(t("errors.saveFailed"));
