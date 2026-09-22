@@ -406,6 +406,26 @@ function PinSection() {
   );
 }
 
+function ClickChoice({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const t = useTranslation();
+  return (
+    <label className="block text-xs text-muted-foreground">
+      {t("settings.clickTypeLabel")}
+      <select
+        className="mt-1 w-full rounded-md border border-input bg-background px-2 py-1.5 text-foreground"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {(["single_click", "double_click", "long_click"] as const).map((type) => (
+          <option key={type} value={type}>
+            {t(`common.clickType.${type}`)}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 function SwitchChoice({
   label,
   value,
