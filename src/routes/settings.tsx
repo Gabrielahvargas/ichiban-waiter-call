@@ -229,7 +229,7 @@ function SettingsPage() {
             <p className="mb-3 text-sm text-muted-foreground">{t("settings.buttonsHelp")}</p>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {tables.map((table, index) => {
-                const invalid = table.call_button === table.attend_button;
+                const invalid = tableActionConflict(table);
                 return (
                   <div key={`buttons-${table.id}`} className="rounded-lg border border-border p-3">
                     <div className="flex items-baseline gap-3">
@@ -239,24 +239,44 @@ function SettingsPage() {
                       </span>
                     </div>
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                      <SwitchChoice
-                        label={t("settings.callButton")}
-                        value={table.call_button}
-                        onChange={(v) => {
-                          const next = [...tables];
-                          next[index] = { ...table, call_button: v };
-                          setTables(next);
-                        }}
-                      />
-                      <SwitchChoice
-                        label={t("settings.attendButton")}
-                        value={table.attend_button}
-                        onChange={(v) => {
-                          const next = [...tables];
-                          next[index] = { ...table, attend_button: v };
-                          setTables(next);
-                        }}
-                      />
+                      <div className="space-y-2">
+                        <SwitchChoice
+                          label={t("settings.callButton")}
+                          value={table.call_button}
+                          onChange={(v) => {
+                            const next = [...tables];
+                            next[index] = { ...table, call_button: v };
+                            setTables(next);
+                          }}
+                        />
+                        <ClickChoice
+                          value={table.call_click_type}
+                          onChange={(v) => {
+                            const next = [...tables];
+                            next[index] = { ...table, call_click_type: v };
+                            setTables(next);
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <SwitchChoice
+                          label={t("settings.attendButton")}
+                          value={table.attend_button}
+                          onChange={(v) => {
+                            const next = [...tables];
+                            next[index] = { ...table, attend_button: v };
+                            setTables(next);
+                          }}
+                        />
+                        <ClickChoice
+                          value={table.attend_click_type}
+                          onChange={(v) => {
+                            const next = [...tables];
+                            next[index] = { ...table, attend_click_type: v };
+                            setTables(next);
+                          }}
+                        />
+                      </div>
                     </div>
                     {invalid ? (
                       <p className="mt-2 text-sm font-medium text-destructive">
