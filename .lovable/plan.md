@@ -47,6 +47,14 @@ Interfaz 100% en español, pensada para TV grande y pantalla táctil, con arquit
 - Al pulsar botón 3, el foco elegido de esa mesa pasa a rojo 3 s y luego recupera su color anterior.
 - Las horas y duraciones las fija el servidor; los eventos son idempotentes y el estado sobrevive a una recarga.
 
+7. **Bilingüe inglés / español**
+   - Inglés como idioma predeterminado para todo usuario nuevo, incluso antes de iniciar sesión.
+   - Selector EN / ES visible en la interfaz y también en Configuración.
+   - La preferencia se guarda por usuario (y en el navegador para quien no ha iniciado sesión).
+   - Traducido todo: pantalla de llamadas, estados WAITING / ATTENDED, cronómetros y etiquetas, administración, ajustes, historial, métricas, notificaciones, alertas, errores y modo demostración.
+   - Los números de mesa y los identificadores de dispositivos nunca se traducen.
+   - Cambiar de idioma no reinicia cronómetros ni pierde llamadas activas.
+
 ## Detalles técnicos
 
 - Backend con Lovable Cloud: tablas `mesas`, `dispositivos`, `focos`, `llamadas`, `eventos`, `configuracion`, `perfiles`, `roles_usuario`; marcas de tiempo del servidor, clave de idempotencia por evento, y separación `entorno = produccion | demo`.
