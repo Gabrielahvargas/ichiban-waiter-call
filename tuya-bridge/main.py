@@ -108,7 +108,7 @@ def main() -> None:
 
             while True:
                 try:
-                    msg = consumer.receive(timeout_ms=1000)
+                    msg = consumer.receive(timeout_millis=1000)
                 except pulsar.Timeout:
                     continue
 
