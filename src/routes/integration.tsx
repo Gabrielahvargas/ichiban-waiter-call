@@ -103,6 +103,31 @@ function IntegrationPage() {
 
         <section className="mt-6 rounded-xl border border-border bg-card p-5">
           <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">
+            {t("integration.bridgeTitle")}
+          </h2>
+          <p className="text-sm text-muted-foreground">{t("integration.bridgeExplanation")}</p>
+          <div className="mt-3 flex items-center gap-3 text-sm">
+            <span
+              className={`inline-block h-3 w-3 rounded-full ${lastHardwareEvent && Date.now() - new Date(lastHardwareEvent).getTime() < 90000 ? "bg-status-ok" : "bg-status-down"}`}
+              aria-hidden
+            />
+            <span>
+              {t("integration.bridgeStatus")}:{" "}
+              {lastHardwareEvent && Date.now() - new Date(lastHardwareEvent).getTime() < 90000
+                ? t("integration.bridgeConnected")
+                : t("integration.bridgeDisconnected")}
+            </span>
+          </div>
+          {lastHardwareEvent ? (
+            <p className="mt-2 text-sm tabular text-muted-foreground">
+              {t("integration.bridgeLastEvent")}: {new Date(lastHardwareEvent).toLocaleString(locale)}
+            </p>
+          ) : null}
+          <p className="mt-3 text-sm text-muted-foreground">{t("integration.bridgeSteps")}</p>
+        </section>
+
+        <section className="mt-6 rounded-xl border border-border bg-card p-5">
+          <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">
             {t("integration.checklist")}
           </h2>
           <ul className="space-y-2 text-sm">
