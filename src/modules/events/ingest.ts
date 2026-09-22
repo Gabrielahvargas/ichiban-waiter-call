@@ -34,7 +34,7 @@ export async function ingestButtonEvent(params: {
   clickType?: "single" | "double" | "long";
   idempotencyKey?: string;
 }): Promise<IngestResponse> {
-  const { data, error } = await supabase.rpc("ingest_button_event" as never, {
+  const { data, error } = await supabase.rpc("ingest_button_event", {
     p_table_number: params.tableNumber,
     p_button: params.button,
     p_environment: params.environment,
