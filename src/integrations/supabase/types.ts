@@ -523,6 +523,7 @@ export type Database = {
           shift: Database["public"]["Enums"]["app_shift"]
         }[]
       }
+      generate_pairing_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
