@@ -15,8 +15,12 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as IntegrationRouteImport } from './routes/integration'
+import { Route as ScreenRouteImport } from './routes/screen'
+import { Route as ScreensRouteImport } from './routes/screens'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StatsRouteImport } from './routes/stats'
+import { Route as WaitersRouteImport } from './routes/waiters'
+import { Route as ApiPublicTuyaEventsRouteImport } from './routes/api/public/tuya-events'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -48,6 +52,16 @@ const IntegrationRoute = IntegrationRouteImport.update({
   path: '/integration',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScreenRoute = ScreenRouteImport.update({
+  id: '/screen',
+  path: '/screen',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScreensRoute = ScreensRouteImport.update({
+  id: '/screens',
+  path: '/screens',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -58,6 +72,16 @@ const StatsRoute = StatsRouteImport.update({
   path: '/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WaitersRoute = WaitersRouteImport.update({
+  id: '/waiters',
+  path: '/waiters',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTuyaEventsRoute = ApiPublicTuyaEventsRouteImport.update({
+  id: '/api/public/tuya-events',
+  path: '/api/public/tuya-events',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -66,8 +90,12 @@ export interface FileRoutesByFullPath {
   '/demo': typeof DemoRoute
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
+  '/screen': typeof ScreenRoute
+  '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/waiters': typeof WaitersRoute
+  '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -76,8 +104,12 @@ export interface FileRoutesByTo {
   '/demo': typeof DemoRoute
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
+  '/screen': typeof ScreenRoute
+  '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/waiters': typeof WaitersRoute
+  '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -87,8 +119,12 @@ export interface FileRoutesById {
   '/demo': typeof DemoRoute
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
+  '/screen': typeof ScreenRoute
+  '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/waiters': typeof WaitersRoute
+  '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -99,8 +135,12 @@ export interface FileRouteTypes {
     | '/demo'
     | '/history'
     | '/integration'
+    | '/screen'
+    | '/screens'
     | '/settings'
     | '/stats'
+    | '/waiters'
+    | '/api/public/tuya-events'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -109,8 +149,12 @@ export interface FileRouteTypes {
     | '/demo'
     | '/history'
     | '/integration'
+    | '/screen'
+    | '/screens'
     | '/settings'
     | '/stats'
+    | '/waiters'
+    | '/api/public/tuya-events'
   id:
     | '__root__'
     | '/'
@@ -119,8 +163,12 @@ export interface FileRouteTypes {
     | '/demo'
     | '/history'
     | '/integration'
+    | '/screen'
+    | '/screens'
     | '/settings'
     | '/stats'
+    | '/waiters'
+    | '/api/public/tuya-events'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -130,8 +178,12 @@ export interface RootRouteChildren {
   DemoRoute: typeof DemoRoute
   HistoryRoute: typeof HistoryRoute
   IntegrationRoute: typeof IntegrationRoute
+  ScreenRoute: typeof ScreenRoute
+  ScreensRoute: typeof ScreensRoute
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
+  WaitersRoute: typeof WaitersRoute
+  ApiPublicTuyaEventsRoute: typeof ApiPublicTuyaEventsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -178,6 +230,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/screen': {
+      id: '/screen'
+      path: '/screen'
+      fullPath: '/screen'
+      preLoaderRoute: typeof ScreenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/screens': {
+      id: '/screens'
+      path: '/screens'
+      fullPath: '/screens'
+      preLoaderRoute: typeof ScreensRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -192,6 +258,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StatsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/waiters': {
+      id: '/waiters'
+      path: '/waiters'
+      fullPath: '/waiters'
+      preLoaderRoute: typeof WaitersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/tuya-events': {
+      id: '/api/public/tuya-events'
+      path: '/api/public/tuya-events'
+      fullPath: '/api/public/tuya-events'
+      preLoaderRoute: typeof ApiPublicTuyaEventsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -202,8 +282,12 @@ const rootRouteChildren: RootRouteChildren = {
   DemoRoute: DemoRoute,
   HistoryRoute: HistoryRoute,
   IntegrationRoute: IntegrationRoute,
+  ScreenRoute: ScreenRoute,
+  ScreensRoute: ScreensRoute,
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
+  WaitersRoute: WaitersRoute,
+  ApiPublicTuyaEventsRoute: ApiPublicTuyaEventsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,5 +1,6 @@
 export type AppEnvironment = "production" | "demo";
 export type CallStatus = "pending" | "attended";
+export type Shift = "lunch" | "dinner";
 
 export interface Call {
   id: string;
@@ -11,6 +12,56 @@ export interface Call {
   duration_seconds: number | null;
   attended_by: string | null;
   cooldown_until: string | null;
+  /** Waiter on duty for this table when the call started (snapshot). */
+  assigned_waiter_id?: string | null;
+  assigned_waiter_name?: string | null;
+  service_date?: string | null;
+  shift?: Shift | null;
+}
+
+export interface Waiter {
+  id: string;
+  full_name: string;
+  code: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WaiterAssignment {
+  id: string;
+  waiter_id: string;
+  table_number: number;
+  service_date: string;
+  shift: Shift;
+  effective_from: string;
+  effective_to: string | null;
+  created_by: string | null;
+}
+
+export interface DisplayScreen {
+  id: string;
+  name: string;
+  environment: AppEnvironment;
+  /** null means "all ten tables". */
+  table_numbers: number[] | null;
+  pairing_code: string | null;
+  pairing_code_expires_at: string | null;
+  paired_at: string | null;
+  last_seen_at: string | null;
+  created_at: string;
+}
+
+export interface ScreenState {
+  ok: boolean;
+  server_time: string;
+  screen: { id: string; name: string; tables: number[] | null; environment: AppEnvironment };
+  settings: {
+    attended_card_seconds: number;
+    sound_alerts: SoundAlerts;
+    wait_threshold_seconds: number;
+  };
+  calls: Call[];
 }
 
 export interface DiningTable {
@@ -44,6 +95,8 @@ export interface AppSettings {
   shared_light_alert_color: string;
   log_retention_days: number;
   gateway_external_id: string | null;
+  timezone: string;
+  dinner_start_hour: number;
   integration_status: string;
   updated_at: string;
 }

@@ -15,6 +15,8 @@ export const FALLBACK_SETTINGS: AppSettings = {
   shared_light_alert_color: "#ff0000",
   log_retention_days: 90,
   gateway_external_id: null,
+  timezone: "America/Chicago",
+  dinner_start_hour: 16,
   integration_status: "pending",
   updated_at: new Date(0).toISOString(),
 };

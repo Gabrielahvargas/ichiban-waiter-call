@@ -8,6 +8,7 @@ import { Protected } from "@/components/Protected";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import { useSettings } from "@/modules/config/useSettings";
+import { callRpc } from "@/modules/shared/rpc";
 import { bulbCodesForTable, type AppSettings, type DiningTable } from "@/modules/shared/types";
 
 export const Route = createFileRoute("/settings")({
@@ -65,6 +66,8 @@ function SettingsPage() {
         shared_light_color: draft.shared_light_color,
         shared_light_alert_color: draft.shared_light_alert_color,
         log_retention_days: draft.log_retention_days,
+        timezone: draft.timezone,
+        dinner_start_hour: draft.dinner_start_hour,
         gateway_external_id: draft.gateway_external_id,
         updated_at: new Date().toISOString(),
       })
@@ -165,6 +168,20 @@ function SettingsPage() {
               value={draft.local_red_seconds}
               onChange={(v) => set("local_red_seconds", v)}
             />
+            <Text
+              label={t("settings.timezone")}
+              value={draft.timezone}
+              onChange={(v) => set("timezone", v)}
+            />
+            <Num
+              label={t("settings.dinnerStart")}
+              value={draft.dinner_start_hour}
+              onChange={(v) => set("dinner_start_hour", v)}
+            />
+          </Section>
+
+          <Section title={t("settings.pinSection")}>
+            <PinSection />
           </Section>
 
           <Section title={t("settings.lightSection")}>
@@ -245,6 +262,63 @@ function SettingsPage() {
         </div>
       </Protected>
     </AppShell>
+  );
+}
+
+function PinSection() {
+  const { t } = useI18n();
+  const [pin, setPin] = useState("");
+  const [configured, setConfigured] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    void callRpc<boolean>("admin_pin_configured")
+      .then((value) => setConfigured(Boolean(value)))
+      .catch(() => setConfigured(null));
+  }, []);
+
+  async function savePin() {
+    if (!/^[0-9]{4,8}$/.test(pin)) {
+      toast.error(t("settings.pinInvalidFormat"));
+      return;
+    }
+    setBusy(true);
+    try {
+      await callRpc("admin_set_pin", { p_pin: pin });
+      setPin("");
+      setConfigured(true);
+      toast.success(t("settings.pinSaved"));
+    } catch {
+      toast.error(t("errors.saveFailed"));
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-muted-foreground">{t("settings.pinHelp")}</p>
+      <p className="text-sm font-semibold">
+        {configured === null ? "" : configured ? t("settings.pinConfigured") : t("settings.pinMissing")}
+      </p>
+      <label className="block text-sm text-muted-foreground">
+        {t("settings.pinLabel")}
+        <input
+          className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-foreground"
+          value={pin}
+          inputMode="numeric"
+          autoComplete="off"
+          onChange={(e) => setPin(e.target.value.replace(/[^0-9]/g, "").slice(0, 8))}
+        />
+      </label>
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => void savePin()}
+        className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+      >
+        {t("common.save")}
+      </button>
+    </div>
   );
 }
 

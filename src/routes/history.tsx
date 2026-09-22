@@ -6,7 +6,7 @@ import { Protected } from "@/components/Protected";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import { formatElapsed } from "@/modules/calls/useCalls";
-import type { AppEnvironment, Call } from "@/modules/shared/types";
+import type { AppEnvironment, Call, Shift } from "@/modules/shared/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/history")({
@@ -21,19 +21,33 @@ export const Route = createFileRoute("/history")({
   component: HistoryPage,
 });
 
-export function useCallHistory(environment: AppEnvironment) {
+export interface CallFilters {
+  from?: string;
+  to?: string;
+  shift?: Shift | "all";
+  waiterId?: string | "all" | "none";
+  tableNumber?: number | "all";
+}
+
+export function useCallHistory(environment: AppEnvironment, filters: CallFilters = {}) {
   const [calls, setCalls] = useState<Call[]>([]);
   const [loading, setLoading] = useState(true);
+  const { from, to, shift, waiterId, tableNumber } = filters;
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    void supabase
-      .from("calls")
-      .select("*")
-      .eq("environment", environment)
+    let query = supabase.from("calls").select("*").eq("environment", environment);
+    if (from) query = query.gte("service_date", from);
+    if (to) query = query.lte("service_date", to);
+    if (shift && shift !== "all") query = query.eq("shift", shift);
+    if (tableNumber && tableNumber !== "all") query = query.eq("table_number", tableNumber);
+    if (waiterId === "none") query = query.is("assigned_waiter_id", null);
+    else if (waiterId && waiterId !== "all") query = query.eq("assigned_waiter_id", waiterId);
+
+    void query
       .order("called_at", { ascending: false })
-      .limit(500)
+      .limit(1000)
       .then(({ data }) => {
         if (cancelled) return;
         setCalls((data ?? []) as Call[]);
@@ -42,7 +56,7 @@ export function useCallHistory(environment: AppEnvironment) {
     return () => {
       cancelled = true;
     };
-  }, [environment]);
+  }, [environment, from, to, shift, waiterId, tableNumber]);
 
   return { calls, loading };
 }
@@ -73,6 +87,7 @@ function HistoryPage() {
               <thead className="bg-secondary text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3">{t("common.table")}</th>
+                  <th className="px-4 py-3">{t("metrics.waiter")}</th>
                   <th className="px-4 py-3">{t("history.calledAt")}</th>
                   <th className="px-4 py-3">{t("history.attendedAt")}</th>
                   <th className="px-4 py-3">{t("history.duration")}</th>
@@ -83,6 +98,7 @@ function HistoryPage() {
                 {calls.map((call) => (
                   <tr key={call.id} className="border-t border-border">
                     <td className="px-4 py-3 font-display text-lg font-bold tabular">{call.table_number}</td>
+                    <td className="px-4 py-3">{call.assigned_waiter_name ?? t("metrics.unassigned")}</td>
                     <td className="px-4 py-3 tabular">{fmt(call.called_at)}</td>
                     <td className="px-4 py-3 tabular">{fmt(call.attended_at)}</td>
                     <td className="px-4 py-3 tabular">

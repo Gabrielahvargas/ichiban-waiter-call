@@ -30,6 +30,40 @@ function IntegrationPage() {
   const { t, locale } = useI18n();
   const { settings } = useSettings();
   const [commands, setCommands] = useState<LightingCommand[]>([]);
+  const [secretReady, setSecretReady] = useState<boolean | null>(null);
+  const [lastHardwareEvent, setLastHardwareEvent] = useState<string | null>(null);
+  const [demoOnly, setDemoOnly] = useState(false);
+  const endpointUrl =
+    typeof window === "undefined" ? "/api/public/tuya-events" : `${window.location.origin}/api/public/tuya-events`;
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/public/tuya-events")
+      .then((r) => r.json())
+      .then((body: { status?: string }) => {
+        if (!cancelled) setSecretReady(body.status === "armed");
+      })
+      .catch(() => {
+        if (!cancelled) setSecretReady(false);
+      });
+
+    void supabase
+      .from("button_events")
+      .select("received_at, source")
+      .order("received_at", { ascending: false })
+      .limit(50)
+      .then(({ data }) => {
+        if (cancelled) return;
+        const rows = (data ?? []) as { received_at: string; source: string | null }[];
+        const hardware = rows.find((r) => (r.source ?? "").startsWith("gateway"));
+        setLastHardwareEvent(hardware?.received_at ?? null);
+        setDemoOnly(!hardware && rows.length > 0);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,6 +115,44 @@ function IntegrationPage() {
               ),
             )}
           </ul>
+        </section>
+
+        <section className="mt-4 rounded-xl border border-border bg-card p-5">
+          <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">
+            {t("integration.diagnosticsTitle")}
+          </h2>
+          <dl className="space-y-2 text-sm">
+            <div>
+              <dt className="text-muted-foreground">{t("integration.diagEndpoint")}</dt>
+              <dd className="font-mono text-xs break-all">{endpointUrl}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">{t("integration.diagSecretSet")}</dt>
+              <dd className={secretReady ? "font-semibold text-status-ok" : "font-semibold text-status-down"}>
+                {secretReady === null
+                  ? t("common.loading")
+                  : secretReady
+                    ? t("integration.diagSecretSet")
+                    : t("integration.diagSecretMissing")}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground">{t("integration.diagLastEvent")}</dt>
+              <dd className="tabular">
+                {lastHardwareEvent
+                  ? new Date(lastHardwareEvent).toLocaleString(locale, {
+                      dateStyle: "short",
+                      timeStyle: "medium",
+                    })
+                  : demoOnly
+                    ? t("integration.diagDemoOnly")
+                    : t("integration.diagNoEvents")}
+              </dd>
+            </div>
+          </dl>
+          {!secretReady ? (
+            <p className="mt-3 text-sm text-muted-foreground">{t("integration.diagSteps")}</p>
+          ) : null}
         </section>
 
         <section className="mt-4 rounded-xl border border-border bg-card p-5">
