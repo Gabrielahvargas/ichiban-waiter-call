@@ -13,9 +13,13 @@ import { z } from "zod";
 
 const payloadSchema = z.object({
   table_number: z.number().int().positive(),
-  button: z.union([z.literal(3), z.literal(4)]),
+  /** Raw switch number reported by the device (switch_1 .. switch_4). The
+   *  server resolves it into CALL or ATTEND using this table's mapping. */
+  button: z.number().int().min(1).max(4),
   event_id: z.string().min(6).max(200),
   device_id: z.string().max(200).optional(),
+  /** Only single clicks act today; other click types are ignored server-side. */
+  click_type: z.enum(["single", "double", "long"]).optional(),
 });
 
 function json(body: unknown, status: number): Response {
@@ -34,7 +38,7 @@ export const Route = createFileRoute("/api/public/tuya-events")({
           {
             status: configured ? "armed" : "pending",
             detail: configured
-              ? "Signing secret present. Waiting for a verified button 3/4 event from the gateway."
+              ? "Signing secret present. Waiting for a verified single-click switch event from the gateway."
               : "TUYA_WEBHOOK_SECRET is not configured, so no gateway event can be trusted yet.",
           },
           200,
@@ -69,6 +73,7 @@ export const Route = createFileRoute("/api/public/tuya-events")({
           p_environment: "production",
           p_idempotency_key: parsed.event_id,
           p_source: parsed.device_id ? `gateway:${parsed.device_id}` : "gateway",
+          p_click_type: parsed.click_type ?? "single",
         } as never);
 
         if (error) return json({ error: error.message }, 500);
