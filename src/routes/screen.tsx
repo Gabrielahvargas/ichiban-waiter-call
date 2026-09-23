@@ -208,8 +208,54 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
 
   const pendingCount = visible.filter((c) => c.status === "pending").length;
 
+  const [orientationOverride, setOrientationOverride] = useState<ScreenOrientation | null>(null);
+  const orientation: ScreenOrientation = orientationOverride ?? state?.screen.orientation ?? "landscape";
+  useEffect(() => {
+    // Once the server reflects the change, drop the local override.
+    if (orientationOverride && state?.screen.orientation === orientationOverride) setOrientationOverride(null);
+  }, [state?.screen.orientation, orientationOverride]);
+  const [windowLandscape, setWindowLandscape] = useState(true);
+  useEffect(() => {
+    const mq = window.matchMedia("(orientation: landscape)");
+    const update = () => setWindowLandscape(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+  const portrait = orientation === "portrait";
+  const rotate = portrait && windowLandscape;
+
+  async function changeOrientation(next: ScreenOrientation) {
+    if (!pinSession) return;
+    setOrientationOverride(next);
+    try {
+      const data = await callRpc<{ ok: boolean; error?: string }>("screen_set_orientation", {
+        p_screen_id: session.screenId,
+        p_device_token: session.token,
+        p_pin_session: pinSession,
+        p_orientation: next,
+      });
+      if (!data?.ok) {
+        setOrientationOverride(null);
+        if (data?.error === "session_expired") {
+          setPinSession(null);
+          setMode("pin");
+        }
+      }
+    } catch {
+      setOrientationOverride(null);
+    }
+  }
+
   return (
-    <div className="flex min-h-screen flex-col bg-background p-3">
+    <div
+      className={cn("flex flex-col bg-background p-3", rotate ? "fixed left-0 top-0 overflow-hidden" : "min-h-screen")}
+      style={
+        rotate
+          ? { width: "100vh", height: "100vw", transform: "rotate(90deg) translateY(-100%)", transformOrigin: "top left" }
+          : undefined
+      }
+    >
       <header className="flex items-center justify-between gap-3 pb-2">
         <span className="font-display text-lg font-semibold uppercase tracking-widest text-muted-foreground">
           {state?.screen.name ?? session.name} · {t("live.pendingCount", { count: pendingCount })}
@@ -245,7 +291,7 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
           <p className="mt-3 text-base text-muted-foreground">{t("screen.menuHint")}</p>
         </div>
       ) : (
-        <CallGrid calls={visible} now={now} />
+        <CallGrid calls={visible} now={now} portrait={portrait} />
       )}
 
       {mode === "pin" && (
@@ -263,6 +309,8 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
           onClose={() => setMode("display")}
           onAssign={() => setMode("assign")}
           tables={state?.screen.tables ?? null}
+          orientation={orientation}
+          onToggleOrientation={() => void changeOrientation(orientation === "portrait" ? "landscape" : "portrait")}
         />
       )}
       {mode === "assign" && pinSession && (
@@ -397,18 +445,27 @@ function MenuOverlay({
   onClose,
   onAssign,
   tables,
+  orientation,
+  onToggleOrientation,
 }: {
   onClose: () => void;
   onAssign: () => void;
   tables: number[] | null;
+  orientation: ScreenOrientation;
+  onToggleOrientation: () => void;
 }) {
   const { t } = useI18n();
   const items = useMemo(
     () => [
       { key: "assign", label: t("screen.assignments"), run: onAssign },
+      {
+        key: "orientation",
+        label: `${t("screens.orientation")}: ${t(orientation === "portrait" ? "screens.portrait" : "screens.landscape")}`,
+        run: onToggleOrientation,
+      },
       { key: "exit", label: t("screen.exitMenu"), run: onClose },
     ],
-    [t, onAssign, onClose],
+    [t, onAssign, onClose, orientation, onToggleOrientation],
   );
   const [focus, setFocus] = useState(0);
 
