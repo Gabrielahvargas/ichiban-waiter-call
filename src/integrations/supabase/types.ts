@@ -296,6 +296,7 @@ export type Database = {
           id: string
           last_seen_at: string | null
           name: string
+          orientation: string
           paired_at: string | null
           pairing_code: string | null
           pairing_code_expires_at: string | null
@@ -309,6 +310,7 @@ export type Database = {
           id?: string
           last_seen_at?: string | null
           name: string
+          orientation?: string
           paired_at?: string | null
           pairing_code?: string | null
           pairing_code_expires_at?: string | null
@@ -322,6 +324,7 @@ export type Database = {
           id?: string
           last_seen_at?: string | null
           name?: string
+          orientation?: string
           paired_at?: string | null
           pairing_code?: string | null
           pairing_code_expires_at?: string | null
@@ -628,6 +631,15 @@ export type Database = {
           p_shift: Database["public"]["Enums"]["app_shift"]
           p_table_number: number
           p_waiter_id: string
+        }
+        Returns: Json
+      }
+      screen_set_orientation: {
+        Args: {
+          p_device_token: string
+          p_orientation: string
+          p_pin_session: string
+          p_screen_id: string
         }
         Returns: Json
       }
