@@ -15,7 +15,7 @@ from typing import Any, Dict, List, Optional
 
 log = logging.getLogger("tuya-bridge")
 
-SWITCH_CODE_RE = re.compile(r"^switch_type_(\d)$")
+＿PLACEHOLDER＿
 
 CLICK_NORMALIZATION = {
     "single_click": "single_click",
