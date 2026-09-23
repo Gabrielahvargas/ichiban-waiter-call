@@ -15,7 +15,11 @@ from typing import Any, Dict, List, Optional
 
 log = logging.getLogger("tuya-bridge")
 
-SWITCH_CODE_RE = re.compile(r"^switch_type_(\d)$")
+# Accepts switch_type_3 (seen on table 700) and the other DP spellings the same
+# 4-gang scene switches use (switch3_value, switch_3, scene_3, button_3).
+SWITCH_CODE_RE = re.compile(
+    r"^(?:switch_type_|switch_|switch|scene_|button_)(\d)(?:_value)?$"
+)
 
 CLICK_NORMALIZATION = {
     "single_click": "single_click",
@@ -235,6 +239,19 @@ def process_message(
     """
     events = extract_switch_events(decrypted)
     if not events:
+        # Always leave a trace: a silently dropped message is impossible to
+        # diagnose from Railway logs otherwise (this is how the table 800
+        # button looked: no events anywhere).
+        biz_data = decrypted.get("bizData") if isinstance(decrypted.get("bizData"), dict) else {}
+        dev = (biz_data or {}).get("devId") or decrypted.get("devId") or "?"
+        items = (biz_data or {}).get("properties") or (biz_data or {}).get("status") or []
+        codes = [
+            f"{i.get('code')}={i.get('value')!r}" for i in items if isinstance(i, dict)
+        ]
+        log.info(
+            "No switch event in message: bizCode=%s device=%s codes=%s",
+            decrypted.get("bizCode"), dev, codes or "none",
+        )
         return "ack"
 
     all_done = True
