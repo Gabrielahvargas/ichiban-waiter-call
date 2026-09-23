@@ -12,10 +12,15 @@ export function gridClasses(count: number): string {
   return "grid-cols-2 lg:grid-cols-4";
 }
 
-export function CallGrid({ calls, now }: { calls: Call[]; now: number }) {
+export function portraitGridClasses(count: number): string {
+  if (count <= 2) return "grid-cols-1";
+  return "grid-cols-2";
+}
+
+export function CallGrid({ calls, now, portrait = false }: { calls: Call[]; now: number; portrait?: boolean }) {
   const density = calls.length <= 1 ? "single" : calls.length === 2 ? "split" : "grid";
   return (
-    <div className={cn("grid flex-1 gap-3", gridClasses(calls.length))}>
+    <div className={cn("grid flex-1 gap-3", portrait ? portraitGridClasses(calls.length) : gridClasses(calls.length))}>
       {calls.map((call) => (
         <CallCard key={call.id} call={call} now={now} density={density} />
       ))}

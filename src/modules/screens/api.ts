@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { callRpc } from "@/modules/shared/rpc";
-import type { AppEnvironment, DisplayScreen, ScreenState } from "@/modules/shared/types";
+import type { AppEnvironment, DisplayScreen, ScreenOrientation, ScreenState } from "@/modules/shared/types";
 
 const DEVICE_KEY = "ichiban.screen.device";
 
@@ -117,7 +117,7 @@ export async function regeneratePairingCode(screenId: string) {
 
 export async function updateScreen(
   screenId: string,
-  patch: { name?: string; table_numbers?: number[] | null; environment?: AppEnvironment },
+  patch: { name?: string; table_numbers?: number[] | null; environment?: AppEnvironment; orientation?: ScreenOrientation },
 ) {
   const { error } = await supabase.from("display_screens").update(patch as never).eq("id", screenId);
   if (error) throw new Error(error.message);

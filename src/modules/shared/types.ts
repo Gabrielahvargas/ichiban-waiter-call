@@ -39,7 +39,10 @@ export interface WaiterAssignment {
   created_by: string | null;
 }
 
+export type ScreenOrientation = "landscape" | "portrait";
+
 export interface DisplayScreen {
+  orientation: ScreenOrientation;
   id: string;
   name: string;
   environment: AppEnvironment;
@@ -55,7 +58,7 @@ export interface DisplayScreen {
 export interface ScreenState {
   ok: boolean;
   server_time: string;
-  screen: { id: string; name: string; tables: number[] | null; environment: AppEnvironment };
+  screen: { id: string; name: string; tables: number[] | null; environment: AppEnvironment; orientation?: ScreenOrientation };
   settings: {
     attended_card_seconds: number;
     sound_alerts: SoundAlerts;
