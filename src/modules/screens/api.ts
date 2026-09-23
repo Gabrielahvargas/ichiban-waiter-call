@@ -48,6 +48,7 @@ export function useScreenState(session: DeviceSession | null, intervalMs = 2000)
   const [state, setState] = useState<ScreenState | null>(null);
   const [connection, setConnection] = useState<"connecting" | "online" | "offline" | "unpaired">("connecting");
   const offsetRef = useRef(0);
+  const failuresRef = useRef(0);
 
   const load = useCallback(async () => {
     if (!session) return;
@@ -60,11 +61,15 @@ export function useScreenState(session: DeviceSession | null, intervalMs = 2000)
         setConnection("unpaired");
         return;
       }
+      failuresRef.current = 0;
       offsetRef.current = new Date(data.server_time).getTime() - Date.now();
       setState(data);
       setConnection("online");
     } catch {
-      setConnection("offline");
+      // Tolerate brief blips (Wi-Fi hiccup, tablet power saving): only warn
+      // after 3 consecutive failures.
+      failuresRef.current += 1;
+      if (failuresRef.current >= 3) setConnection("offline");
     }
   }, [session]);
 
@@ -72,7 +77,16 @@ export function useScreenState(session: DeviceSession | null, intervalMs = 2000)
     if (!session) return;
     void load();
     const id = setInterval(() => void load(), intervalMs);
-    return () => clearInterval(id);
+    const retry = () => {
+      if (document.visibilityState === "visible") void load();
+    };
+    document.addEventListener("visibilitychange", retry);
+    window.addEventListener("online", retry);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", retry);
+      window.removeEventListener("online", retry);
+    };
   }, [load, session, intervalMs]);
 
   const serverNow = useCallback(() => Date.now() + offsetRef.current, []);
