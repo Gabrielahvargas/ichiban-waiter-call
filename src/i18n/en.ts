@@ -315,6 +315,7 @@ export const en = {
     screenName: "Screen",
     tablesShown: "Tables shown",
     reconnecting: "Connection lost — reconnecting",
+    connecting: "Connecting…",
   },
   metrics: {
     filters: "Filters",

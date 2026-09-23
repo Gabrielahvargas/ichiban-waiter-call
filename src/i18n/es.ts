@@ -317,6 +317,7 @@ export const es: Dictionary = {
     screenName: "Pantalla",
     tablesShown: "Mesas mostradas",
     reconnecting: "Conexión perdida — reconectando",
+    connecting: "Conectando…",
   },
   metrics: {
     filters: "Filtros",

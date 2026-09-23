@@ -274,11 +274,17 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
               "rounded-full px-3 py-1 text-sm font-semibold",
               connection === "online"
                 ? "bg-secondary text-status-ok"
-                : "bg-destructive text-destructive-foreground animate-pulse",
+                : connection === "connecting"
+                  ? "bg-secondary text-muted-foreground"
+                  : "bg-destructive text-destructive-foreground animate-pulse",
             )}
             role="status"
           >
-            {connection === "online" ? t("live.connected") : t("screen.reconnecting")}
+            {connection === "online"
+              ? t("live.connected")
+              : connection === "connecting"
+                ? t("screen.connecting")
+                : t("screen.reconnecting")}
           </span>
         </div>
       </header>
