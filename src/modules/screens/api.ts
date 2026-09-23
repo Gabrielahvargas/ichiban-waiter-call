@@ -48,28 +48,34 @@ export function useScreenState(session: DeviceSession | null, intervalMs = 2000)
   const [state, setState] = useState<ScreenState | null>(null);
   const [connection, setConnection] = useState<"connecting" | "online" | "offline" | "unpaired">("connecting");
   const offsetRef = useRef(0);
-  const failuresRef = useRef(0);
+  const lastOkRef = useRef(Date.now());
+  const inFlightRef = useRef(false);
 
   const load = useCallback(async () => {
-    if (!session) return;
+    if (!session || inFlightRef.current) return;
+    inFlightRef.current = true;
     try {
-      const data = await callRpc<ScreenState & { ok: boolean; error?: string }>("screen_state", {
-        p_screen_id: session.screenId,
-        p_device_token: session.token,
-      });
+      const data = await Promise.race([
+        callRpc<ScreenState & { ok: boolean; error?: string }>("screen_state", {
+          p_screen_id: session.screenId,
+          p_device_token: session.token,
+        }),
+        new Promise<never>((_, rej) => setTimeout(() => rej(new Error("timeout")), 12000)),
+      ]);
       if (!data?.ok) {
         setConnection("unpaired");
         return;
       }
-      failuresRef.current = 0;
+      lastOkRef.current = Date.now();
       offsetRef.current = new Date(data.server_time).getTime() - Date.now();
       setState(data);
       setConnection("online");
     } catch {
-      // Tolerate brief blips (Wi-Fi hiccup, tablet power saving): only warn
-      // after 3 consecutive failures.
-      failuresRef.current += 1;
-      if (failuresRef.current >= 3) setConnection("offline");
+      // Tablets on Wi-Fi power saving drop single requests often. Only warn
+      // when nothing has succeeded for 25 seconds.
+      if (Date.now() - lastOkRef.current > 25000) setConnection("offline");
+    } finally {
+      inFlightRef.current = false;
     }
   }, [session]);
 
@@ -78,7 +84,10 @@ export function useScreenState(session: DeviceSession | null, intervalMs = 2000)
     void load();
     const id = setInterval(() => void load(), intervalMs);
     const retry = () => {
-      if (document.visibilityState === "visible") void load();
+      if (document.visibilityState === "visible") {
+        lastOkRef.current = Math.max(lastOkRef.current, Date.now() - 15000);
+        void load();
+      }
     };
     document.addEventListener("visibilitychange", retry);
     window.addEventListener("online", retry);
