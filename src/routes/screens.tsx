@@ -14,7 +14,7 @@ import {
   updateScreen,
   useScreens,
 } from "@/modules/screens/api";
-import { TABLE_NUMBERS, type AppEnvironment, type DisplayScreen } from "@/modules/shared/types";
+import { TABLE_NUMBERS, type AppEnvironment, type DisplayScreen, type ScreenOrientation } from "@/modules/shared/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/screens")({
@@ -38,13 +38,15 @@ function ScreensPage() {
   const [name, setName] = useState("");
   const [tables, setTables] = useState<number[] | null>(null);
   const [environment, setEnvironment] = useState<AppEnvironment>("production");
+  const [orientation, setOrientation] = useState<ScreenOrientation>("landscape");
   const [busy, setBusy] = useState(false);
 
   async function add() {
     if (!name.trim()) return;
     setBusy(true);
     try {
-      await createScreen(name.trim(), tables, environment);
+      const created = await createScreen(name.trim(), tables, environment);
+      if (orientation !== "landscape" && created?.id) await updateScreen(created.id, { orientation });
       setName("");
       setTables(null);
       await reload();
@@ -86,6 +88,7 @@ function ScreensPage() {
               <option value="production">{t("history.production")}</option>
               <option value="demo">{t("history.demoEnv")}</option>
             </select>
+            <OrientationSelect value={orientation} onChange={setOrientation} />
             <button
               type="button"
               disabled={busy}
@@ -106,6 +109,29 @@ function ScreensPage() {
         </div>
       </Protected>
     </AppShell>
+  );
+}
+
+function OrientationSelect({
+  value,
+  onChange,
+}: {
+  value: ScreenOrientation;
+  onChange: (next: ScreenOrientation) => void;
+}) {
+  const { t } = useI18n();
+  return (
+    <label className="flex items-center gap-2 text-sm">
+      <span className="text-muted-foreground">{t("screens.orientation")}</span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as ScreenOrientation)}
+        className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+      >
+        <option value="landscape">{t("screens.landscape")}</option>
+        <option value="portrait">{t("screens.portrait")}</option>
+      </select>
+    </label>
   );
 }
 
@@ -180,6 +206,7 @@ function ScreenCard({
   const { t } = useI18n();
   const [name, setName] = useState(screen.name);
   const [tables, setTables] = useState<number[] | null>(screen.table_numbers);
+  const [orientation, setOrientation] = useState<ScreenOrientation>(screen.orientation ?? "landscape");
   const online = screenIsOnline(screen);
   const codeValid =
     screen.pairing_code && screen.pairing_code_expires_at
@@ -188,7 +215,7 @@ function ScreenCard({
 
   async function save() {
     try {
-      await updateScreen(screen.id, { name, table_numbers: tables });
+      await updateScreen(screen.id, { name, table_numbers: tables, orientation });
       toast.success(t("common.saved"));
       await onChanged();
     } catch {
@@ -237,6 +264,9 @@ function ScreenCard({
         </div>
       )}
 
+      <div className="mt-3">
+        <OrientationSelect value={orientation} onChange={setOrientation} />
+      </div>
       <TablePicker value={tables} onChange={setTables} />
 
       <div className="mt-4 flex flex-wrap gap-2">

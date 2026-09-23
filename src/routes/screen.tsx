@@ -13,7 +13,7 @@ import {
   type DeviceSession,
 } from "@/modules/screens/api";
 import { defaultShift, todayIso } from "@/modules/waiters/api";
-import { TABLE_NUMBERS, type Call, type Shift } from "@/modules/shared/types";
+import { TABLE_NUMBERS, type Call, type ScreenOrientation, type Shift } from "@/modules/shared/types";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/screen")({
