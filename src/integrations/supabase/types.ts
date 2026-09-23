@@ -610,6 +610,7 @@ export type Database = {
         }
         Returns: Json
       }
+      is_team_member: { Args: { _user_id: string }; Returns: boolean }
       screen_assignment_board: {
         Args: {
           p_pin_session: string
