@@ -15,7 +15,11 @@ from typing import Any, Dict, List, Optional
 
 log = logging.getLogger("tuya-bridge")
 
-＿PLACEHOLDER＿
+# Accepts switch_type_3 (seen on table 700) and the other DP spellings the same
+# 4-gang scene switches use (switch3_value, switch_3, scene_3, button_3).
+SWITCH_CODE_RE = re.compile(
+    r"^(?:switch_type_|switch_|switch|scene_|button_)(\d)(?:_value)?$"
+)
 
 CLICK_NORMALIZATION = {
     "single_click": "single_click",
