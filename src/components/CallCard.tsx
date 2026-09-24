@@ -7,7 +7,7 @@ export interface CallCardProps {
   call: Call;
   now: number;
   /** Bigger type when only one or two cards share the screen. */
-  density: "single" | "split" | "grid";
+  density: "single" | "split" | "grid" | "compact";
 }
 
 export function CallCard({ call, now, density }: CallCardProps) {
@@ -24,6 +24,8 @@ export function CallCard({ call, now, density }: CallCardProps) {
       ? "text-[clamp(7rem,26vw,22rem)]"
       : density === "split"
         ? "text-[clamp(5rem,16vw,15rem)]"
+        : density === "compact"
+          ? "text-[clamp(3rem,8vh,5.5rem)]"
         : "text-[clamp(3.5rem,9vw,9rem)]";
 
   const timerSize =
@@ -31,21 +33,24 @@ export function CallCard({ call, now, density }: CallCardProps) {
       ? "text-[clamp(3.5rem,12vw,10rem)]"
       : density === "split"
         ? "text-[clamp(2.5rem,7vw,6.5rem)]"
+        : density === "compact"
+          ? "text-[clamp(1.5rem,4.5vh,3rem)]"
         : "text-[clamp(1.75rem,4vw,4rem)]";
 
-  const helperSize = density === "grid" ? "text-sm" : "text-lg md:text-2xl";
+  const helperSize = density === "grid" || density === "compact" ? "text-sm" : "text-lg md:text-2xl";
 
   return (
     <article
       className={cn(
-        "flex h-full w-full flex-col items-center justify-center rounded-3xl px-4 py-6 text-center shadow-2xl transition-colors duration-300",
+        "flex h-full min-h-0 w-full flex-col items-center justify-center overflow-hidden rounded-3xl px-4 text-center shadow-2xl transition-colors duration-300",
+        density === "compact" ? "py-2" : "py-6",
         attended ? "call-card-attended" : "call-card-pending",
       )}
     >
       <span
         className={cn(
           "font-display font-semibold uppercase tracking-[0.3em] text-call-helper",
-          density === "grid" ? "text-xs" : "text-base md:text-xl",
+          density === "grid" || density === "compact" ? "text-xs" : "text-base md:text-xl",
         )}
       >
         {attended ? t("live.attended") : t("live.waiting")}
@@ -64,7 +69,7 @@ export function CallCard({ call, now, density }: CallCardProps) {
         {formatElapsed(elapsedSeconds)}
       </span>
 
-      <span className={cn("mt-2 font-medium text-call-helper/90", helperSize)}>
+      <span className={cn("font-medium text-call-helper/90", density === "compact" ? "mt-1" : "mt-2", helperSize)}>
         {attended ? t("live.helperAttended") : t("live.helperWaiting")}
       </span>
     </article>
