@@ -249,14 +249,17 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
 
   return (
     <div
-      className={cn("flex flex-col bg-background p-3", rotate ? "fixed left-0 top-0 overflow-hidden" : "min-h-screen")}
+      className={cn(
+        "flex flex-col overflow-hidden bg-background p-3",
+        rotate ? "fixed left-0 top-0" : "h-dvh min-h-0",
+      )}
       style={
         rotate
           ? { width: "100vh", height: "100vw", transform: "rotate(90deg) translateY(-100%)", transformOrigin: "top left" }
           : undefined
       }
     >
-      <header className="flex items-center justify-between gap-3 pb-2">
+      <header className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 pb-2">
         <span className="font-display text-lg font-semibold uppercase tracking-widest text-muted-foreground">
           {state?.screen.name ?? session.name} · {t("live.pendingCount", { count: pendingCount })}
         </span>
