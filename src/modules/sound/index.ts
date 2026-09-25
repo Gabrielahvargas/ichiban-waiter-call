@@ -89,7 +89,7 @@ export async function playSound(cfg: SoundConfig): Promise<void> {
       osc.type = n.type ?? "sine";
       osc.frequency.setValueAtTime(n.f, t0 + n.start);
       gain.gain.setValueAtTime(0.0001, t0 + n.start);
-      gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, 0.35 * vol), t0 + n.start + 0.03);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.0002, 0.95 * vol), t0 + n.start + 0.03);
       gain.gain.exponentialRampToValueAtTime(0.0001, t0 + n.start + n.dur);
       osc.connect(gain).connect(c.destination);
       osc.start(t0 + n.start);
