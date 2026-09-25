@@ -50,6 +50,7 @@ export const es: Dictionary = {
     attended: "ATENDIDA",
     helperWaiting: "Esperando a un mesero",
     helperAttended: "Tiempo final",
+    waiterLabel: "Mesero",
     connected: "Conectado",
     disconnected: "Conexión perdida — reconectando",
     pendingCount: "{count} pendientes",

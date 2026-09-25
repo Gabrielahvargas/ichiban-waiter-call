@@ -48,6 +48,7 @@ export const en = {
     attended: "ATTENDED",
     helperWaiting: "Waiting for a waiter",
     helperAttended: "Final time",
+    waiterLabel: "Waiter",
     connected: "Connected",
     disconnected: "Connection lost — reconnecting",
     pendingCount: "{count} pending",

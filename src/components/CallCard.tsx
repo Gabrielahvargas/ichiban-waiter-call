@@ -69,6 +69,18 @@ export function CallCard({ call, now, density }: CallCardProps) {
         {formatElapsed(elapsedSeconds)}
       </span>
 
+      {call.assigned_waiter_name && call.assigned_waiter_name.trim().length > 0 && (
+        <span
+          className={cn(
+            "w-full max-w-full truncate font-semibold text-call-helper",
+            density === "single" || density === "split" ? "mt-2 text-xl md:text-3xl" : "mt-1 text-sm md:text-base",
+          )}
+          title={call.assigned_waiter_name}
+        >
+          {t("live.waiterLabel")}: {call.assigned_waiter_name}
+        </span>
+      )}
+
       <span className={cn("font-medium text-call-helper/90", density === "compact" ? "mt-1" : "mt-2", helperSize)}>
         {attended ? t("live.helperAttended") : t("live.helperWaiting")}
       </span>
