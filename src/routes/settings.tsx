@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import { useSettings } from "@/modules/config/useSettings";
 import { callRpc } from "@/modules/shared/rpc";
+import { playSound, SOUND_IDS } from "@/modules/sound";
 import {
   bulbCodesForTable,
   type AppSettings,
@@ -31,16 +32,58 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
+const SETTINGS_KEYS = [
+  "output_mode",
+  "new_call_rule",
+  "sound_alerts",
+  "wait_threshold_seconds",
+  "attended_card_seconds",
+  "local_red_seconds",
+  "shared_light_color",
+  "shared_light_alert_color",
+  "log_retention_days",
+  "timezone",
+  "dinner_start_hour",
+  "gateway_external_id",
+  "sound_id",
+  "sound_volume",
+  "custom_sound_url",
+] as const;
+
+function pickSettings(s: AppSettings) {
+  const out: Record<string, unknown> = {};
+  for (const k of SETTINGS_KEYS) out[k] = s[k];
+  return out;
+}
+
+const TABLE_KEYS = [
+  "alert_bulb_code",
+  "button_device_external_id",
+  "gateway_external_id",
+  "call_button",
+  "call_click_type",
+  "attend_button",
+  "attend_click_type",
+] as const;
+
+function tableChanged(a: DiningTable, b: DiningTable | undefined) {
+  if (!b) return false;
+  return TABLE_KEYS.some((k) => (a[k] ?? "") !== (b[k] ?? ""));
+}
+
 function SettingsPage() {
   const { t } = useI18n();
   const { persist } = useLanguagePreference();
   const { settings } = useSettings();
   const [draft, setDraft] = useState<AppSettings | null>(null);
+  const [saved, setSaved] = useState<AppSettings | null>(null);
   const [tables, setTables] = useState<DiningTable[]>([]);
+  const [savedTables, setSavedTables] = useState<Record<string, DiningTable>>({});
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!draft) setDraft(settings);
+    if (!saved || !draft) setSaved(settings);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
 
@@ -49,8 +92,27 @@ function SettingsPage() {
       .from("dining_tables")
       .select("*")
       .order("table_number")
-      .then(({ data }) => setTables((data ?? []) as DiningTable[]));
+      .then(({ data }) => {
+        const rows = (data ?? []) as DiningTable[];
+        setTables(rows);
+        setSavedTables(Object.fromEntries(rows.map((r) => [r.id, r])));
+      });
   }, []);
+
+  const settingsDirty =
+    !!draft && !!saved && JSON.stringify(pickSettings(draft)) !== JSON.stringify(pickSettings(saved));
+  const tablesDirty = tables.some((tb) => tableChanged(tb, savedTables[tb.id]));
+  const anyDirty = settingsDirty || tablesDirty;
+
+  useEffect(() => {
+    if (!anyDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = t("settings.leaveWarning");
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [anyDirty, t]);
 
   function set<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
     setDraft((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -61,25 +123,14 @@ function SettingsPage() {
     setBusy(true);
     const { error } = await supabase
       .from("app_settings")
-      .update({
-        output_mode: draft.output_mode,
-        new_call_rule: draft.new_call_rule,
-        sound_alerts: draft.sound_alerts,
-        wait_threshold_seconds: draft.wait_threshold_seconds,
-        attended_card_seconds: draft.attended_card_seconds,
-        local_red_seconds: draft.local_red_seconds,
-        shared_light_color: draft.shared_light_color,
-        shared_light_alert_color: draft.shared_light_alert_color,
-        log_retention_days: draft.log_retention_days,
-        timezone: draft.timezone,
-        dinner_start_hour: draft.dinner_start_hour,
-        gateway_external_id: draft.gateway_external_id,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ ...(pickSettings(draft) as Partial<AppSettings>), updated_at: new Date().toISOString() })
       .eq("id", "global");
     setBusy(false);
     if (error) toast.error(t("errors.saveFailed"));
-    else toast.success(t("common.saved"));
+    else {
+      setSaved(draft);
+      toast.success(t("common.saved"));
+    }
   }
 
   function tableActionConflict(table: DiningTable) {
@@ -104,7 +155,10 @@ function SettingsPage() {
       })
       .eq("id", table.id);
     if (error) toast.error(t("errors.saveFailed"));
-    else toast.success(t("common.saved"));
+    else {
+      setSavedTables((prev) => ({ ...prev, [table.id]: table }));
+      toast.success(t("common.saved"));
+    }
   }
 
   if (!draft) return null;
@@ -114,14 +168,6 @@ function SettingsPage() {
       <Protected adminOnly>
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <h1 className="font-display text-3xl font-bold uppercase tracking-wide">{t("settings.title")}</h1>
-          <button
-            type="button"
-            onClick={() => void save()}
-            disabled={busy}
-            className="ml-auto rounded-md bg-primary px-5 py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
-          >
-            {busy ? t("common.saving") : t("common.save")}
-          </button>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
@@ -172,6 +218,10 @@ function SettingsPage() {
               value={draft.wait_threshold_seconds}
               onChange={(v) => set("wait_threshold_seconds", v)}
             />
+            <p className="text-xs text-muted-foreground">
+              {t("settings.waitThresholdHelp", { seconds: draft.wait_threshold_seconds })}
+            </p>
+            <SoundPicker draft={draft} set={set} />
           </Section>
 
           <Section title={t("settings.timingSection")}>
@@ -288,14 +338,11 @@ function SettingsPage() {
                         {t("settings.sameButtonError", { table: table.table_number })}
                       </p>
                     ) : null}
-                    <button
-                      type="button"
+                    <TableSaveButton
                       disabled={invalid}
+                      dirty={tableChanged(table, savedTables[table.id])}
                       onClick={() => void saveTable(tables[index]!)}
-                      className="mt-3 rounded-md border border-border px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    >
-                      {t("common.save")}
-                    </button>
+                    />
                   </div>
                 );
               })}
@@ -337,17 +384,41 @@ function SettingsPage() {
                       }}
                     />
                   </label>
-                  <button
-                    type="button"
+                  <TableSaveButton
+                    dirty={tableChanged(table, savedTables[table.id])}
                     onClick={() => void saveTable(tables[index]!)}
-                    className="mt-3 rounded-md border border-border px-3 py-1.5 text-sm font-medium"
-                  >
-                    {t("common.save")}
-                  </button>
+                  />
                 </div>
               ))}
             </div>
           </Section>
+        </div>
+
+        <div className="sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur">
+          <span
+            className={`text-sm font-semibold ${anyDirty ? "text-accent" : "text-status-ok"}`}
+            role="status"
+          >
+            {anyDirty ? t("settings.unsavedChanges") : t("settings.allSaved")}
+          </span>
+          <div className="ml-auto flex gap-2">
+            <button
+              type="button"
+              disabled={!settingsDirty || busy}
+              onClick={() => saved && setDraft(saved)}
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium disabled:opacity-50"
+            >
+              {t("settings.discard")}
+            </button>
+            <button
+              type="button"
+              onClick={() => void save()}
+              disabled={busy || !settingsDirty}
+              className="rounded-md bg-primary px-5 py-2 font-semibold text-primary-foreground disabled:opacity-60"
+            >
+              {busy ? t("common.saving") : t("common.save")}
+            </button>
+          </div>
         </div>
       </Protected>
     </AppShell>
@@ -544,5 +615,120 @@ function Color({ label, value, onChange }: { label: string; value: string; onCha
         onChange={(e) => onChange(e.target.value)}
       />
     </label>
+  );
+}
+
+function TableSaveButton({ dirty, disabled, onClick }: { dirty: boolean; disabled?: boolean; onClick: () => void }) {
+  const { t } = useI18n();
+  return (
+    <div className="mt-3 flex items-center gap-2">
+      <button
+        type="button"
+        disabled={disabled || !dirty}
+        onClick={onClick}
+        className={`rounded-md px-3 py-1.5 text-sm font-medium disabled:opacity-50 ${
+          dirty ? "bg-primary text-primary-foreground" : "border border-border"
+        }`}
+      >
+        {t("common.save")}
+      </button>
+      {dirty ? <span className="text-xs font-semibold text-accent">{t("settings.unsavedChanges")}</span> : null}
+    </div>
+  );
+}
+
+function SoundPicker({
+  draft,
+  set,
+}: {
+  draft: AppSettings;
+  set: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void;
+}) {
+  const { t } = useI18n();
+  const [uploading, setUploading] = useState(false);
+  const cfg = (id: string) => ({ soundId: id, volume: draft.sound_volume, customPath: draft.custom_sound_url });
+  const ids = SOUND_IDS.filter((id) => id !== "custom" || draft.custom_sound_url);
+
+  async function upload(file: File) {
+    if (!/\.mp3$/i.test(file.name) || file.size > 1024 * 1024) {
+      toast.error(t("settings.soundUploadInvalid"));
+      return;
+    }
+    setUploading(true);
+    const path = `custom-${Date.now()}.mp3`;
+    const { error } = await supabase.storage
+      .from("alert-sounds")
+      .upload(path, file, { contentType: "audio/mpeg", upsert: true });
+    setUploading(false);
+    if (error) {
+      toast.error(t("errors.saveFailed"));
+      return;
+    }
+    set("custom_sound_url", path);
+    set("sound_id", "custom");
+    toast.success(t("settings.soundUploaded"));
+  }
+
+  return (
+    <div className="space-y-3 rounded-lg border border-border p-3">
+      <p className="text-sm font-semibold">{t("settings.soundChoice")}</p>
+      <div className="space-y-2">
+        {ids.map((id) => (
+          <div key={id} className="flex items-center gap-3">
+            <label className="flex flex-1 items-center gap-2 text-sm">
+              <input type="radio" name="sound_id" checked={draft.sound_id === id} onChange={() => set("sound_id", id)} />
+              {t(`settings.soundNames.${id}`)}
+            </label>
+            <button
+              type="button"
+              onClick={() => void playSound(cfg(id))}
+              className="rounded-md border border-border px-3 py-1 text-sm font-medium"
+            >
+              ▶ {t("settings.soundListen")}
+            </button>
+          </div>
+        ))}
+      </div>
+      <label className="block text-sm text-muted-foreground">
+        {t("settings.soundVolume")}: {draft.sound_volume}%
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          className="mt-1 w-full"
+          value={draft.sound_volume}
+          onChange={(e) => set("sound_volume", Number(e.target.value))}
+        />
+      </label>
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="cursor-pointer rounded-md border border-border px-3 py-1.5 text-sm font-medium">
+          {uploading ? t("common.saving") : draft.custom_sound_url ? t("settings.soundUploadReplace") : t("settings.soundUpload")}
+          <input
+            type="file"
+            accept="audio/mpeg,.mp3"
+            className="hidden"
+            disabled={uploading}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              e.target.value = "";
+              if (f) void upload(f);
+            }}
+          />
+        </label>
+        {draft.custom_sound_url ? (
+          <button
+            type="button"
+            onClick={() => {
+              set("custom_sound_url", null);
+              if (draft.sound_id === "custom") set("sound_id", "chime");
+            }}
+            className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-destructive"
+          >
+            {t("settings.soundUploadRemove")}
+          </button>
+        ) : null}
+      </div>
+    </div>
   );
 }

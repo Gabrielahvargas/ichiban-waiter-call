@@ -59,6 +59,7 @@ export type Database = {
       app_settings: {
         Row: {
           attended_card_seconds: number
+          custom_sound_url: string | null
           dinner_start_hour: number
           gateway_external_id: string | null
           id: string
@@ -71,12 +72,15 @@ export type Database = {
           shared_light_color: string
           shared_light_device_id: string | null
           sound_alerts: string
+          sound_id: string
+          sound_volume: number
           timezone: string
           updated_at: string
           wait_threshold_seconds: number
         }
         Insert: {
           attended_card_seconds?: number
+          custom_sound_url?: string | null
           dinner_start_hour?: number
           gateway_external_id?: string | null
           id?: string
@@ -89,12 +93,15 @@ export type Database = {
           shared_light_color?: string
           shared_light_device_id?: string | null
           sound_alerts?: string
+          sound_id?: string
+          sound_volume?: number
           timezone?: string
           updated_at?: string
           wait_threshold_seconds?: number
         }
         Update: {
           attended_card_seconds?: number
+          custom_sound_url?: string | null
           dinner_start_hour?: number
           gateway_external_id?: string | null
           id?: string
@@ -107,6 +114,8 @@ export type Database = {
           shared_light_color?: string
           shared_light_device_id?: string | null
           sound_alerts?: string
+          sound_id?: string
+          sound_volume?: number
           timezone?: string
           updated_at?: string
           wait_threshold_seconds?: number

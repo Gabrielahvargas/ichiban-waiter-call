@@ -63,6 +63,9 @@ export interface ScreenState {
     attended_card_seconds: number;
     sound_alerts: SoundAlerts;
     wait_threshold_seconds: number;
+    sound_id?: string;
+    sound_volume?: number;
+    custom_sound_url?: string | null;
   };
   calls: Call[];
 }
@@ -112,6 +115,10 @@ export interface AppSettings {
   dinner_start_hour: number;
   integration_status: string;
   updated_at: string;
+  sound_id: string;
+  sound_volume: number;
+  /** Storage path of an uploaded MP3 in the alert-sounds bucket. */
+  custom_sound_url: string | null;
 }
 
 export interface LightingCommand {
