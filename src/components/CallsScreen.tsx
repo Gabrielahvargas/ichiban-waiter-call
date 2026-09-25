@@ -7,27 +7,8 @@ import { useSettings } from "@/modules/config/useSettings";
 import type { AppEnvironment, Call } from "@/modules/shared/types";
 import { cn } from "@/lib/utils";
 
-function playChime() {
-  if (typeof window === "undefined") return;
-  const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!Ctx) return;
-  try {
-    const ctx = new Ctx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.85);
-    osc.onended = () => void ctx.close();
-  } catch {
-    /* audio is best-effort */
-  }
-}
+import { SoundUnlockBanner } from "@/components/SoundUnlockBanner";
+import { playSound } from "@/modules/sound";
 
 function gridClasses(count: number): string {
   if (count <= 1) return "grid-cols-1";
@@ -61,21 +42,22 @@ export function CallsScreen({ environment }: { environment: AppEnvironment }) {
   const known = useRef<Set<string>>(new Set());
   const alerted = useRef<Set<string>>(new Set());
   useEffect(() => {
+    const cfg = { soundId: settings.sound_id, volume: settings.sound_volume, customPath: settings.custom_sound_url };
     for (const call of calls) {
       if (call.status !== "pending") continue;
       if (!known.current.has(call.id)) {
         known.current.add(call.id);
-        if (settings.sound_alerts === "every_call") playChime();
+        if (settings.sound_alerts === "every_call") void playSound(cfg);
       }
       if (settings.sound_alerts === "threshold_only" && !alerted.current.has(call.id)) {
         const waited = (Date.now() - new Date(call.called_at).getTime()) / 1000;
         if (waited >= settings.wait_threshold_seconds) {
           alerted.current.add(call.id);
-          playChime();
+          void playSound(cfg);
         }
       }
     }
-  }, [calls, now, settings.sound_alerts, settings.wait_threshold_seconds]);
+  }, [calls, now, settings]);
 
   const density = visible.length <= 1 ? "single" : visible.length === 2 ? "split" : "grid";
 

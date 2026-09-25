@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CallGrid } from "@/components/CallGrid";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { SoundUnlockBanner } from "@/components/SoundUnlockBanner";
+import { playSound } from "@/modules/sound";
 import { useI18n } from "@/i18n";
 import { callRpc } from "@/modules/shared/rpc";
 import {
@@ -40,27 +42,6 @@ function isOk(e: KeyboardEvent) {
   return e.key === "Enter" || e.key === " ";
 }
 
-function playChime() {
-  if (typeof window === "undefined") return;
-  const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!Ctx) return;
-  try {
-    const ctx = new Ctx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
-    osc.connect(gain).connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.85);
-    osc.onended = () => void ctx.close();
-  } catch {
-    /* best effort */
-  }
-}
 
 function ScreenPage() {
   const [session, setSession] = useState<DeviceSession | null>(null);
@@ -183,14 +164,29 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
   }, [state, now, attendedWindow]);
 
   const seen = useRef<Set<string>>(new Set());
+  const alerted = useRef<Set<string>>(new Set());
+  const threshold = state?.settings.wait_threshold_seconds ?? 300;
+  const soundCfg = {
+    soundId: state?.settings.sound_id ?? "chime",
+    volume: state?.settings.sound_volume ?? 80,
+    customPath: state?.settings.custom_sound_url ?? null,
+  };
   useEffect(() => {
     for (const call of state?.calls ?? []) {
       if (call.status !== "pending") continue;
-      if (seen.current.has(call.id)) continue;
-      seen.current.add(call.id);
-      if (soundMode === "every_call") playChime();
+      if (!seen.current.has(call.id)) {
+        seen.current.add(call.id);
+        if (soundMode === "every_call") void playSound(soundCfg);
+      }
+      if (soundMode === "threshold_only" && !alerted.current.has(call.id)) {
+        if ((now - new Date(call.called_at).getTime()) / 1000 >= threshold) {
+          alerted.current.add(call.id);
+          void playSound(soundCfg);
+        }
+      }
     }
-  }, [state, soundMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state, soundMode, now, threshold]);
 
   // Remote: OK opens the menu from the call display; timers keep running because
   // elapsed time is derived from the server timestamps, never from local state.
@@ -264,6 +260,7 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
           {state?.screen.name ?? session.name} · {t("live.pendingCount", { count: pendingCount })}
         </span>
         <div className="flex items-center gap-2">
+          <SoundUnlockBanner enabled={soundMode !== "none"} />
           <LanguageSwitcher />
           <button
             type="button"
