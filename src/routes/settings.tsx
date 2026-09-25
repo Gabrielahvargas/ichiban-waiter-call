@@ -31,16 +31,58 @@ export const Route = createFileRoute("/settings")({
   component: SettingsPage,
 });
 
+const SETTINGS_KEYS = [
+  "output_mode",
+  "new_call_rule",
+  "sound_alerts",
+  "wait_threshold_seconds",
+  "attended_card_seconds",
+  "local_red_seconds",
+  "shared_light_color",
+  "shared_light_alert_color",
+  "log_retention_days",
+  "timezone",
+  "dinner_start_hour",
+  "gateway_external_id",
+  "sound_id",
+  "sound_volume",
+  "custom_sound_url",
+] as const;
+
+function pickSettings(s: AppSettings) {
+  const out: Record<string, unknown> = {};
+  for (const k of SETTINGS_KEYS) out[k] = s[k];
+  return out;
+}
+
+const TABLE_KEYS = [
+  "alert_bulb_code",
+  "button_device_external_id",
+  "gateway_external_id",
+  "call_button",
+  "call_click_type",
+  "attend_button",
+  "attend_click_type",
+] as const;
+
+function tableChanged(a: DiningTable, b: DiningTable | undefined) {
+  if (!b) return false;
+  return TABLE_KEYS.some((k) => (a[k] ?? "") !== (b[k] ?? ""));
+}
+
 function SettingsPage() {
   const { t } = useI18n();
   const { persist } = useLanguagePreference();
   const { settings } = useSettings();
   const [draft, setDraft] = useState<AppSettings | null>(null);
+  const [saved, setSaved] = useState<AppSettings | null>(null);
   const [tables, setTables] = useState<DiningTable[]>([]);
+  const [savedTables, setSavedTables] = useState<Record<string, DiningTable>>({});
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!draft) setDraft(settings);
+    if (!saved || !draft) setSaved(settings);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings]);
 
@@ -49,8 +91,27 @@ function SettingsPage() {
       .from("dining_tables")
       .select("*")
       .order("table_number")
-      .then(({ data }) => setTables((data ?? []) as DiningTable[]));
+      .then(({ data }) => {
+        const rows = (data ?? []) as DiningTable[];
+        setTables(rows);
+        setSavedTables(Object.fromEntries(rows.map((r) => [r.id, r])));
+      });
   }, []);
+
+  const settingsDirty =
+    !!draft && !!saved && JSON.stringify(pickSettings(draft)) !== JSON.stringify(pickSettings(saved));
+  const tablesDirty = tables.some((tb) => tableChanged(tb, savedTables[tb.id]));
+  const anyDirty = settingsDirty || tablesDirty;
+
+  useEffect(() => {
+    if (!anyDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = t("settings.leaveWarning");
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [anyDirty, t]);
 
   function set<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
     setDraft((prev) => (prev ? { ...prev, [key]: value } : prev));
@@ -61,25 +122,14 @@ function SettingsPage() {
     setBusy(true);
     const { error } = await supabase
       .from("app_settings")
-      .update({
-        output_mode: draft.output_mode,
-        new_call_rule: draft.new_call_rule,
-        sound_alerts: draft.sound_alerts,
-        wait_threshold_seconds: draft.wait_threshold_seconds,
-        attended_card_seconds: draft.attended_card_seconds,
-        local_red_seconds: draft.local_red_seconds,
-        shared_light_color: draft.shared_light_color,
-        shared_light_alert_color: draft.shared_light_alert_color,
-        log_retention_days: draft.log_retention_days,
-        timezone: draft.timezone,
-        dinner_start_hour: draft.dinner_start_hour,
-        gateway_external_id: draft.gateway_external_id,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ ...(pickSettings(draft) as Partial<AppSettings>), updated_at: new Date().toISOString() })
       .eq("id", "global");
     setBusy(false);
     if (error) toast.error(t("errors.saveFailed"));
-    else toast.success(t("common.saved"));
+    else {
+      setSaved(draft);
+      toast.success(t("common.saved"));
+    }
   }
 
   function tableActionConflict(table: DiningTable) {
@@ -104,7 +154,10 @@ function SettingsPage() {
       })
       .eq("id", table.id);
     if (error) toast.error(t("errors.saveFailed"));
-    else toast.success(t("common.saved"));
+    else {
+      setSavedTables((prev) => ({ ...prev, [table.id]: table }));
+      toast.success(t("common.saved"));
+    }
   }
 
   if (!draft) return null;
@@ -114,14 +167,6 @@ function SettingsPage() {
       <Protected adminOnly>
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <h1 className="font-display text-3xl font-bold uppercase tracking-wide">{t("settings.title")}</h1>
-          <button
-            type="button"
-            onClick={() => void save()}
-            disabled={busy}
-            className="ml-auto rounded-md bg-primary px-5 py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
-          >
-            {busy ? t("common.saving") : t("common.save")}
-          </button>
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
