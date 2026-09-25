@@ -76,14 +76,23 @@ function ScreenPage() {
 
 /* ------------------------------------------------------------- pairing */
 
+/** Same alphabet the server uses in generate_pairing_code (no I, O, 0, 1). */
+const PAIR_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const PAIR_LEN = 6;
+const PAIR_COLS = 8;
+const PAIR_KEYS = [...PAIR_ALPHABET.split(""), "⌫", "PAIR"];
+
 function PairingView({ onPaired }: { onPaired: (s: DeviceSession) => void }) {
   const { t } = useI18n();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [focus, setFocus] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const keyRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
-  async function submit() {
-    if (code.trim().length < 4) return;
+  const submit = useCallback(async () => {
+    if (busy || code.trim().length < 4) return;
     setBusy(true);
     setError(null);
     try {
@@ -94,37 +103,118 @@ function PairingView({ onPaired }: { onPaired: (s: DeviceSession) => void }) {
       setError(t("screen.invalidCode"));
     }
     setBusy(false);
-  }
+  }, [busy, code, onPaired, t]);
+
+  const press = useCallback(
+    (key: string) => {
+      setError(null);
+      if (key === "⌫") setCode((c) => c.slice(0, -1));
+      else if (key === "PAIR") void submit();
+      else setCode((c) => (c.length < PAIR_LEN ? c + key : c));
+    },
+    [submit],
+  );
+
+  // Keep the real DOM focus on the highlighted key so the TV WebView never
+  // moves focus to something else on its own.
+  useEffect(() => {
+    if (document.activeElement !== inputRef.current) keyRefs.current[focus]?.focus({ preventScroll: true });
+  }, [focus]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const inInput = document.activeElement === inputRef.current;
+      // Typing in the real input (physical keyboard / touch keyboard): let it work natively.
+      if (inInput && !e.key.startsWith("Arrow")) return;
+      if (e.key.startsWith("Arrow")) {
+        e.preventDefault();
+        if (inInput) inputRef.current?.blur();
+        const last = PAIR_KEYS.length - 1;
+        setFocus((f) => {
+          if (inInput) return f;
+          if (e.key === "ArrowRight") return Math.min(last, f + 1);
+          if (e.key === "ArrowLeft") return Math.max(0, f - 1);
+          if (e.key === "ArrowDown") return Math.min(last, f + PAIR_COLS);
+          return Math.max(0, f - PAIR_COLS);
+        });
+        return;
+      }
+      if (e.key === "Enter" || e.keyCode === 23) {
+        e.preventDefault();
+        press(PAIR_KEYS[focus]);
+        return;
+      }
+      if (isBack(e)) {
+        e.preventDefault();
+        press("⌫");
+        return;
+      }
+      const ch = e.key.length === 1 ? e.key.toUpperCase() : "";
+      if (ch && PAIR_ALPHABET.includes(ch)) {
+        e.preventDefault();
+        press(ch);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [focus, press]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6">
+    <div className="relative flex h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 py-4">
       <div className="absolute right-4 top-4">
         <LanguageSwitcher />
       </div>
-      <h1 className="font-display text-4xl font-bold uppercase tracking-wide md:text-6xl">
-        {t("screen.pairTitle")}
-      </h1>
-      <p className="mt-3 max-w-xl text-center text-muted-foreground">{t("screen.pairHint")}</p>
+      <h1 className="font-display text-4xl font-bold uppercase tracking-wide">{t("screen.pairTitle")}</h1>
+      <p className="mt-1 max-w-xl text-center text-sm text-muted-foreground">{t("screen.pairHint")}</p>
       <input
+        ref={inputRef}
         value={code}
-        onChange={(e) => setCode(e.target.value.toUpperCase())}
+        onChange={(e) =>
+          setCode(
+            e.target.value
+              .toUpperCase()
+              .split("")
+              .filter((c) => PAIR_ALPHABET.includes(c))
+              .join("")
+              .slice(0, PAIR_LEN),
+          )
+        }
         onKeyDown={(e) => {
           if (e.key === "Enter") void submit();
         }}
-        maxLength={6}
-        autoFocus
+        maxLength={PAIR_LEN}
         aria-label={t("screen.codeLabel")}
-        className="mt-8 w-full max-w-sm rounded-xl border border-border bg-card px-4 py-4 text-center font-display text-5xl font-bold tracking-[0.4em] uppercase"
+        className="mt-4 w-full max-w-sm rounded-xl border border-border bg-card px-4 py-2 text-center font-display text-5xl font-bold uppercase tracking-[0.4em]"
       />
-      {error && <p className="mt-3 text-destructive">{error}</p>}
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => void submit()}
-        className="mt-6 rounded-xl bg-primary px-10 py-4 font-display text-2xl font-bold uppercase text-primary-foreground"
-      >
-        {busy ? t("screen.pairing") : t("screen.pair")}
-      </button>
+      <p className="mt-1 h-6 text-destructive">{error ?? ""}</p>
+      <div className="mt-1 grid grid-cols-8 gap-2" role="group" aria-label={t("screen.codeLabel")}>
+        {PAIR_KEYS.map((key, i) => {
+          const wide = key === "⌫" || key === "PAIR";
+          return (
+            <button
+              key={key}
+              ref={(el) => {
+                keyRefs.current[i] = el;
+              }}
+              type="button"
+              tabIndex={focus === i ? 0 : -1}
+              disabled={busy && key === "PAIR"}
+              onClick={() => {
+                setFocus(i);
+                press(key);
+              }}
+              className={cn(
+                "h-14 min-w-16 rounded-xl border-2 border-border bg-card px-3 font-display text-3xl font-bold outline-none transition",
+                wide && "col-span-4",
+                key === "PAIR" && "bg-primary text-primary-foreground",
+                focus === i && "scale-105 border-call-timer ring-4 ring-call-timer",
+              )}
+            >
+              {key === "PAIR" ? (busy ? t("screen.pairing") : t("screen.pair")) : key}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
