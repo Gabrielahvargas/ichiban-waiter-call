@@ -19,6 +19,9 @@ export const FALLBACK_SETTINGS: AppSettings = {
   dinner_start_hour: 16,
   integration_status: "pending",
   updated_at: new Date(0).toISOString(),
+  sound_id: "chime",
+  sound_volume: 80,
+  custom_sound_url: null,
 };
 
 export function useSettings() {
