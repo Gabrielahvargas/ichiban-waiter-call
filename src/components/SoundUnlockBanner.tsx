@@ -27,7 +27,7 @@ export function SoundUnlockBanner({ enabled }: { enabled: boolean }) {
       onClick={() => void unlockAudio().then(() => setBlocked(audioBlocked()))}
       className="rounded-full bg-accent px-3 py-1 text-sm font-semibold text-accent-foreground"
     >
-      {t("sound.tapToEnable")}
+      {t("settings.soundTapToEnable")}
     </button>
   );
 }

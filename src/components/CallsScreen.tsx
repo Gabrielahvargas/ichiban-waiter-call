@@ -67,6 +67,7 @@ export function CallsScreen({ environment }: { environment: AppEnvironment }) {
         <span className="font-display text-xl font-semibold uppercase tracking-widest text-muted-foreground">
           {t("live.title")} · {t("live.pendingCount", { count: pendingCount })}
         </span>
+        <SoundUnlockBanner enabled={settings.sound_alerts !== "none"} />
         <span
           className={cn(
             "rounded-full px-3 py-1 text-sm font-semibold",
