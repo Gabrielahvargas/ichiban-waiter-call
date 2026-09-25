@@ -217,6 +217,10 @@ function SettingsPage() {
               value={draft.wait_threshold_seconds}
               onChange={(v) => set("wait_threshold_seconds", v)}
             />
+            <p className="text-xs text-muted-foreground">
+              {t("settings.waitThresholdHelp", { seconds: draft.wait_threshold_seconds })}
+            </p>
+            <SoundPicker draft={draft} set={set} />
           </Section>
 
           <Section title={t("settings.timingSection")}>
@@ -333,14 +337,11 @@ function SettingsPage() {
                         {t("settings.sameButtonError", { table: table.table_number })}
                       </p>
                     ) : null}
-                    <button
-                      type="button"
+                    <TableSaveButton
                       disabled={invalid}
+                      dirty={tableChanged(table, savedTables[table.id])}
                       onClick={() => void saveTable(tables[index]!)}
-                      className="mt-3 rounded-md border border-border px-3 py-1.5 text-sm font-medium disabled:opacity-50"
-                    >
-                      {t("common.save")}
-                    </button>
+                    />
                   </div>
                 );
               })}
@@ -382,17 +383,41 @@ function SettingsPage() {
                       }}
                     />
                   </label>
-                  <button
-                    type="button"
+                  <TableSaveButton
+                    dirty={tableChanged(table, savedTables[table.id])}
                     onClick={() => void saveTable(tables[index]!)}
-                    className="mt-3 rounded-md border border-border px-3 py-1.5 text-sm font-medium"
-                  >
-                    {t("common.save")}
-                  </button>
+                  />
                 </div>
               ))}
             </div>
           </Section>
+        </div>
+
+        <div className="sticky bottom-0 z-20 mt-6 flex flex-wrap items-center gap-3 rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur">
+          <span
+            className={`text-sm font-semibold ${anyDirty ? "text-accent" : "text-status-ok"}`}
+            role="status"
+          >
+            {anyDirty ? t("settings.unsavedChanges") : t("settings.allSaved")}
+          </span>
+          <div className="ml-auto flex gap-2">
+            <button
+              type="button"
+              disabled={!settingsDirty || busy}
+              onClick={() => saved && setDraft(saved)}
+              className="rounded-md border border-border px-4 py-2 text-sm font-medium disabled:opacity-50"
+            >
+              {t("settings.discard")}
+            </button>
+            <button
+              type="button"
+              onClick={() => void save()}
+              disabled={busy || !settingsDirty}
+              className="rounded-md bg-primary px-5 py-2 font-semibold text-primary-foreground disabled:opacity-60"
+            >
+              {busy ? t("common.saving") : t("common.save")}
+            </button>
+          </div>
         </div>
       </Protected>
     </AppShell>
