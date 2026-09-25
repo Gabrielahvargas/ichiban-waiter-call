@@ -11,27 +11,48 @@ export interface SoundConfig {
 
 type Note = { f: number; start: number; dur: number; type?: OscillatorType };
 
+// Each built-in sound lasts ~5 seconds by repeating its motif.
+function repeat(notes: Note[], motifLen: number, total = 5): Note[] {
+  const out: Note[] = [];
+  for (let t = 0; t < total; t += motifLen) {
+    for (const n of notes) out.push({ ...n, start: n.start + t });
+  }
+  return out;
+}
+
 const PATTERNS: Record<Exclude<SoundId, "custom">, Note[]> = {
-  chime: [{ f: 880, start: 0, dur: 0.8 }],
-  double: [
-    { f: 988, start: 0, dur: 0.35 },
-    { f: 784, start: 0.4, dur: 0.6 },
-  ],
-  soft_alarm: [
-    { f: 660, start: 0, dur: 0.25, type: "triangle" },
-    { f: 660, start: 0.35, dur: 0.25, type: "triangle" },
-    { f: 660, start: 0.7, dur: 0.25, type: "triangle" },
-  ],
-  loud_alarm: [
-    { f: 1200, start: 0, dur: 0.2, type: "square" },
-    { f: 900, start: 0.2, dur: 0.2, type: "square" },
-    { f: 1200, start: 0.4, dur: 0.2, type: "square" },
-    { f: 900, start: 0.6, dur: 0.2, type: "square" },
-  ],
-  kitchen: [
-    { f: 2093, start: 0, dur: 1.2 },
-    { f: 2637, start: 0, dur: 1.2 },
-  ],
+  chime: repeat([{ f: 880, start: 0, dur: 0.9 }], 1.0),
+  double: repeat(
+    [
+      { f: 988, start: 0, dur: 0.35 },
+      { f: 784, start: 0.4, dur: 0.6 },
+    ],
+    1.1,
+  ),
+  soft_alarm: repeat(
+    [
+      { f: 660, start: 0, dur: 0.25, type: "triangle" },
+      { f: 660, start: 0.35, dur: 0.25, type: "triangle" },
+      { f: 660, start: 0.7, dur: 0.25, type: "triangle" },
+    ],
+    1.0,
+  ),
+  loud_alarm: repeat(
+    [
+      { f: 1200, start: 0, dur: 0.2, type: "square" },
+      { f: 900, start: 0.2, dur: 0.2, type: "square" },
+      { f: 1200, start: 0.4, dur: 0.2, type: "square" },
+      { f: 900, start: 0.6, dur: 0.2, type: "square" },
+    ],
+    0.9,
+  ),
+  kitchen: repeat(
+    [
+      { f: 2093, start: 0, dur: 1.2 },
+      { f: 2637, start: 0, dur: 1.2 },
+    ],
+    1.3,
+  ),
 };
 
 let ctx: AudioContext | null = null;
