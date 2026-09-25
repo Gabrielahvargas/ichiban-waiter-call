@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import { useSettings } from "@/modules/config/useSettings";
 import { callRpc } from "@/modules/shared/rpc";
+import { playSound, SOUND_IDS } from "@/modules/sound";
 import {
   bulbCodesForTable,
   type AppSettings,
@@ -614,5 +615,120 @@ function Color({ label, value, onChange }: { label: string; value: string; onCha
         onChange={(e) => onChange(e.target.value)}
       />
     </label>
+  );
+}
+
+function TableSaveButton({ dirty, disabled, onClick }: { dirty: boolean; disabled?: boolean; onClick: () => void }) {
+  const { t } = useI18n();
+  return (
+    <div className="mt-3 flex items-center gap-2">
+      <button
+        type="button"
+        disabled={disabled || !dirty}
+        onClick={onClick}
+        className={`rounded-md px-3 py-1.5 text-sm font-medium disabled:opacity-50 ${
+          dirty ? "bg-primary text-primary-foreground" : "border border-border"
+        }`}
+      >
+        {t("common.save")}
+      </button>
+      {dirty ? <span className="text-xs font-semibold text-accent">{t("settings.unsavedChanges")}</span> : null}
+    </div>
+  );
+}
+
+function SoundPicker({
+  draft,
+  set,
+}: {
+  draft: AppSettings;
+  set: <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => void;
+}) {
+  const { t } = useI18n();
+  const [uploading, setUploading] = useState(false);
+  const cfg = (id: string) => ({ soundId: id, volume: draft.sound_volume, customPath: draft.custom_sound_url });
+  const ids = SOUND_IDS.filter((id) => id !== "custom" || draft.custom_sound_url);
+
+  async function upload(file: File) {
+    if (!/\.mp3$/i.test(file.name) || file.size > 1024 * 1024) {
+      toast.error(t("settings.soundUploadInvalid"));
+      return;
+    }
+    setUploading(true);
+    const path = `custom-${Date.now()}.mp3`;
+    const { error } = await supabase.storage
+      .from("alert-sounds")
+      .upload(path, file, { contentType: "audio/mpeg", upsert: true });
+    setUploading(false);
+    if (error) {
+      toast.error(t("errors.saveFailed"));
+      return;
+    }
+    set("custom_sound_url", path);
+    set("sound_id", "custom");
+    toast.success(t("settings.soundUploaded"));
+  }
+
+  return (
+    <div className="space-y-3 rounded-lg border border-border p-3">
+      <p className="text-sm font-semibold">{t("settings.soundChoice")}</p>
+      <div className="space-y-2">
+        {ids.map((id) => (
+          <div key={id} className="flex items-center gap-3">
+            <label className="flex flex-1 items-center gap-2 text-sm">
+              <input type="radio" name="sound_id" checked={draft.sound_id === id} onChange={() => set("sound_id", id)} />
+              {t(`settings.soundNames.${id}`)}
+            </label>
+            <button
+              type="button"
+              onClick={() => void playSound(cfg(id))}
+              className="rounded-md border border-border px-3 py-1 text-sm font-medium"
+            >
+              ▶ {t("settings.soundListen")}
+            </button>
+          </div>
+        ))}
+      </div>
+      <label className="block text-sm text-muted-foreground">
+        {t("settings.soundVolume")}: {draft.sound_volume}%
+        <input
+          type="range"
+          min={0}
+          max={100}
+          step={5}
+          className="mt-1 w-full"
+          value={draft.sound_volume}
+          onChange={(e) => set("sound_volume", Number(e.target.value))}
+        />
+      </label>
+      <div className="flex flex-wrap items-center gap-2">
+        <label className="cursor-pointer rounded-md border border-border px-3 py-1.5 text-sm font-medium">
+          {uploading ? t("common.saving") : draft.custom_sound_url ? t("settings.soundUploadReplace") : t("settings.soundUpload")}
+          <input
+            type="file"
+            accept="audio/mpeg,.mp3"
+            className="hidden"
+            disabled={uploading}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              e.target.value = "";
+              if (f) void upload(f);
+            }}
+          />
+        </label>
+        {draft.custom_sound_url ? (
+          <button
+            type="button"
+            onClick={() => {
+              set("custom_sound_url", null);
+              if (draft.sound_id === "custom") set("sound_id", "chime");
+            }}
+            className="rounded-md border border-border px-3 py-1.5 text-sm font-medium text-destructive"
+          >
+            {t("settings.soundUploadRemove")}
+          </button>
+        ) : null}
+      </div>
+    </div>
   );
 }
