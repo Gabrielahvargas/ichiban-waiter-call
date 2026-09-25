@@ -42,6 +42,47 @@ function isOk(e: KeyboardEvent) {
   return e.key === "Enter" || e.key === " ";
 }
 
+/**
+ * Normalises remote keys: standard KeyboardEvent.key, DOM keyCodes (37-40, 13)
+ * and raw Android KeyEvent codes some TV wrappers forward
+ * (DPAD_UP 19, DOWN 20, LEFT 21, RIGHT 22, CENTER 23, ENTER 66).
+ */
+const REMOTE_CODES: Record<number, string> = {
+  19: "ArrowUp", 20: "ArrowDown", 21: "ArrowLeft", 22: "ArrowRight", 23: "Enter", 66: "Enter",
+  37: "ArrowLeft", 38: "ArrowUp", 39: "ArrowRight", 40: "ArrowDown", 13: "Enter",
+};
+function remoteKey(e: KeyboardEvent): string {
+  const std = e.key;
+  if (std && std !== "Unidentified" && (std.startsWith("Arrow") || std === "Enter" || std.length === 1)) return std;
+  const code = e.keyCode || e.which;
+  return REMOTE_CODES[code] ?? std ?? "";
+}
+
+/** Only with ?debugRemote=1: shows the last keydown so we can tell if the TV app forwards keys. */
+function RemoteDebug() {
+  const [on, setOn] = useState(false);
+  const [info, setInfo] = useState<{ n: number; key: string; code: string; keyCode: number; which: number } | null>(null);
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("debugRemote") !== "1") return;
+    setOn(true);
+    let n = 0;
+    const onKey = (e: KeyboardEvent) => {
+      n += 1;
+      setInfo({ n, key: e.key, code: e.code, keyCode: e.keyCode, which: e.which });
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, []);
+  if (!on) return null;
+  return (
+    <div className="pointer-events-none fixed bottom-2 left-2 z-[100] rounded-md border border-border bg-card/90 px-3 py-1 font-mono text-xs text-muted-foreground">
+      {info
+        ? `keydown #${info.n} key=${info.key} code=${info.code} keyCode=${info.keyCode} which=${info.which}`
+        : "debugRemote: no key event received yet"}
+    </div>
+  );
+}
+
 
 function ScreenPage() {
   const [session, setSession] = useState<DeviceSession | null>(null);
@@ -123,24 +164,27 @@ function PairingView({ onPaired }: { onPaired: (s: DeviceSession) => void }) {
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
+      const key = remoteKey(e);
+      const isArrow = key.startsWith("Arrow");
       const inInput = document.activeElement === inputRef.current;
       // Typing in the real input (physical keyboard / touch keyboard): let it work natively.
-      if (inInput && !e.key.startsWith("Arrow")) return;
-      if (e.key.startsWith("Arrow")) {
+      if (inInput && !isArrow) return;
+      if (isArrow) {
         e.preventDefault();
         if (inInput) inputRef.current?.blur();
         const last = PAIR_KEYS.length - 1;
         setFocus((f) => {
           if (inInput) return f;
-          if (e.key === "ArrowRight") return Math.min(last, f + 1);
-          if (e.key === "ArrowLeft") return Math.max(0, f - 1);
-          if (e.key === "ArrowDown") return Math.min(last, f + PAIR_COLS);
+          if (key === "ArrowRight") return Math.min(last, f + 1);
+          if (key === "ArrowLeft") return Math.max(0, f - 1);
+          if (key === "ArrowDown") return Math.min(last, f + PAIR_COLS);
           return Math.max(0, f - PAIR_COLS);
         });
         return;
       }
-      if (e.key === "Enter" || e.keyCode === 23) {
+      if (key === "Enter") {
         e.preventDefault();
+        if (e.repeat) return;
         press(PAIR_KEYS[focus] ?? "");
         return;
       }
@@ -149,14 +193,15 @@ function PairingView({ onPaired }: { onPaired: (s: DeviceSession) => void }) {
         press("⌫");
         return;
       }
-      const ch = e.key.length === 1 ? e.key.toUpperCase() : "";
+      const ch = key.length === 1 ? key.toUpperCase() : "";
       if (ch && PAIR_ALPHABET.includes(ch)) {
         e.preventDefault();
         press(ch);
       }
     }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    // Capture phase so a focused button / WebView default can't swallow it first.
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
   }, [focus, press]);
 
   return (
