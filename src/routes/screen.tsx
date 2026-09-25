@@ -117,29 +117,6 @@ function ScreenPage() {
   );
 }
 
-function _unused() {
-  return null;
-  if (Math.random()) {
-    return (
-      <PairingView
-        onPaired={(s) => {
-          storeDeviceSession(s);
-          setSession(s);
-        }}
-      />
-    );
-  }
-  return (
-    <DisplayView
-      session={session}
-      onUnpaired={() => {
-        storeDeviceSession(null);
-        setSession(null);
-      }}
-    />
-  );
-}
-
 /* ------------------------------------------------------------- pairing */
 
 /** Same alphabet the server uses in generate_pairing_code (no I, O, 0, 1). */
