@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
@@ -44,29 +44,78 @@ function WaitersPage() {
   const { assignments, history, reload: reloadAssignments } = useAssignments(serviceDate, shift);
   const [selectedWaiter, setSelectedWaiter] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
+  const [pending, setPending] = useState<Map<number, string | null>>(new Map());
+  const [saving, setSaving] = useState(false);
 
-  const byTable = useMemo(() => {
+  const savedByTable = useMemo(() => {
     const map = new Map<number, string>();
     for (const a of assignments) map.set(a.table_number, a.waiter_id);
     return map;
   }, [assignments]);
 
+  const byTable = useMemo(() => {
+    const map = new Map(savedByTable);
+    for (const [table, waiterId] of pending) {
+      if (waiterId === null) map.delete(table);
+      else map.set(table, waiterId);
+    }
+    return map;
+  }, [savedByTable, pending]);
+
+  const dirty = pending.size > 0;
+
+  // Reset unsaved changes when switching date/shift or when data reloads
+  useEffect(() => {
+    setPending(new Map());
+  }, [serviceDate, shift]);
+
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
+
   const waiterName = (id: string | null | undefined) =>
     waiters.find((w) => w.id === id)?.full_name ?? t("waiters.unassigned");
 
-  async function toggleTable(tableNumber: number) {
+  function toggleTable(tableNumber: number) {
     if (!selectedWaiter) {
       toast.info(t("waiters.selectWaiterHint"));
       return;
     }
     const current = byTable.get(tableNumber) ?? null;
     const next = current === selectedWaiter ? null : selectedWaiter;
+    setPending((prev) => {
+      const map = new Map(prev);
+      const saved = savedByTable.get(tableNumber) ?? null;
+      if (next === saved) map.delete(tableNumber);
+      else map.set(tableNumber, next);
+      return map;
+    });
+  }
+
+  async function saveAssignments() {
+    if (pending.size === 0 || saving) return;
+    setSaving(true);
     try {
-      await assignTable({ tableNumber, serviceDate, shift, waiterId: next });
+      for (const [tableNumber, waiterId] of pending) {
+        await assignTable({ tableNumber, serviceDate, shift, waiterId });
+      }
+      setPending(new Map());
       await reloadAssignments();
+      toast.success(t("common.saved"));
     } catch {
       toast.error(t("errors.saveFailed"));
+    } finally {
+      setSaving(false);
     }
+  }
+
+  function discardAssignments() {
+    setPending(new Map());
   }
 
   async function addWaiter() {
@@ -215,6 +264,30 @@ function WaitersPage() {
                   </button>
                 );
               })}
+            </div>
+
+            <div className="sticky bottom-0 mt-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-card/95 p-3 backdrop-blur">
+              <span className="text-sm text-muted-foreground">
+                {dirty ? t("common.unsavedChanges") : t("common.allSaved")}
+              </span>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={discardAssignments}
+                  disabled={!dirty || saving}
+                  className="rounded-md border border-border px-4 py-2 text-sm font-semibold text-muted-foreground disabled:opacity-50"
+                >
+                  {t("common.discard")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void saveAssignments()}
+                  disabled={!dirty || saving}
+                  className="rounded-md bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+                >
+                  {saving ? "…" : t("common.save")}
+                </button>
+              </div>
             </div>
 
             <h3 className="mt-6 mb-2 font-display text-lg font-semibold uppercase tracking-wide">
