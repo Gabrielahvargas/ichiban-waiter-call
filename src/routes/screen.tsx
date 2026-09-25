@@ -94,7 +94,32 @@ function ScreenPage() {
   }, []);
 
   if (!hydrated) return null;
-  if (!session) {
+  return (
+    <>
+      <RemoteDebug />
+      {session ? (
+        <DisplayView
+          session={session}
+          onUnpaired={() => {
+            storeDeviceSession(null);
+            setSession(null);
+          }}
+        />
+      ) : (
+        <PairingView
+          onPaired={(s) => {
+            storeDeviceSession(s);
+            setSession(s);
+          }}
+        />
+      )}
+    </>
+  );
+}
+
+function _unused() {
+  return null;
+  if (Math.random()) {
     return (
       <PairingView
         onPaired={(s) => {
