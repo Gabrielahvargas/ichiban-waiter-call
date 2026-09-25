@@ -141,7 +141,7 @@ function PairingView({ onPaired }: { onPaired: (s: DeviceSession) => void }) {
       }
       if (e.key === "Enter" || e.keyCode === 23) {
         e.preventDefault();
-        press(PAIR_KEYS[focus]);
+        press(PAIR_KEYS[focus] ?? "");
         return;
       }
       if (isBack(e)) {
