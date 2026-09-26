@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   MonitorPlay,
   Gamepad2,
+  Smartphone,
   Users,
   MonitorSmartphone,
   History,
@@ -34,6 +35,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { to: "/", key: "nav.live", icon: MonitorPlay },
   { to: "/demo", key: "nav.demo", icon: Gamepad2 },
+  { to: "/remote", key: "nav.remote", icon: Smartphone },
   { to: "/waiters", key: "nav.waiters", icon: Users },
   { to: "/screens", key: "nav.screens", icon: MonitorSmartphone },
   { to: "/history", key: "nav.history", icon: History },

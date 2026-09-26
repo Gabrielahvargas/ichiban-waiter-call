@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as IntegrationRouteImport } from './routes/integration'
+import { Route as RemoteRouteImport } from './routes/remote'
 import { Route as ScreenRouteImport } from './routes/screen'
 import { Route as ScreensRouteImport } from './routes/screens'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -50,6 +51,11 @@ const HistoryRoute = HistoryRouteImport.update({
 const IntegrationRoute = IntegrationRouteImport.update({
   id: '/integration',
   path: '/integration',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RemoteRoute = RemoteRouteImport.update({
+  id: '/remote',
+  path: '/remote',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScreenRoute = ScreenRouteImport.update({
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/demo': typeof DemoRoute
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
+  '/remote': typeof RemoteRoute
   '/screen': typeof ScreenRoute
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/demo': typeof DemoRoute
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
+  '/remote': typeof RemoteRoute
   '/screen': typeof ScreenRoute
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/demo': typeof DemoRoute
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
+  '/remote': typeof RemoteRoute
   '/screen': typeof ScreenRoute
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/history'
     | '/integration'
+    | '/remote'
     | '/screen'
     | '/screens'
     | '/settings'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/history'
     | '/integration'
+    | '/remote'
     | '/screen'
     | '/screens'
     | '/settings'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/demo'
     | '/history'
     | '/integration'
+    | '/remote'
     | '/screen'
     | '/screens'
     | '/settings'
@@ -178,6 +190,7 @@ export interface RootRouteChildren {
   DemoRoute: typeof DemoRoute
   HistoryRoute: typeof HistoryRoute
   IntegrationRoute: typeof IntegrationRoute
+  RemoteRoute: typeof RemoteRoute
   ScreenRoute: typeof ScreenRoute
   ScreensRoute: typeof ScreensRoute
   SettingsRoute: typeof SettingsRoute
@@ -228,6 +241,13 @@ declare module '@tanstack/react-router' {
       path: '/integration'
       fullPath: '/integration'
       preLoaderRoute: typeof IntegrationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/remote': {
+      id: '/remote'
+      path: '/remote'
+      fullPath: '/remote'
+      preLoaderRoute: typeof RemoteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/screen': {
@@ -282,6 +302,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemoRoute: DemoRoute,
   HistoryRoute: HistoryRoute,
   IntegrationRoute: IntegrationRoute,
+  RemoteRoute: RemoteRoute,
   ScreenRoute: ScreenRoute,
   ScreensRoute: ScreensRoute,
   SettingsRoute: SettingsRoute,

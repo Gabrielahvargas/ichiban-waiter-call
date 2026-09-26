@@ -8,6 +8,7 @@ export const es: Dictionary = {
   nav: {
     live: "Llamadas en vivo",
     demo: "Modo demostración",
+    remote: "Botonera",
     history: "Historial",
     stats: "Estadísticas",
     settings: "Configuración",
@@ -72,6 +73,16 @@ export const es: Dictionary = {
     ignoredNoPending: "Ignorado: esta mesa no tiene llamada pendiente",
     created: "Llamada creada para la mesa {table}",
     attended: "Mesa {table} marcada como atendida",
+  },
+  remote: {
+    title: "Botonera",
+    subtitle: "Llama o atiende mesas reales desde tu celular.",
+    table: "Mesa",
+    call: "Llamar",
+    attend: "Atendida",
+    pending: "{count} pendientes",
+    now: "Ahora",
+    ago: "Hace {m}m",
   },
   history: {
     title: "Historial",
