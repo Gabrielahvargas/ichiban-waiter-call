@@ -43,7 +43,11 @@ export function CallCard({ call, now, density }: CallCardProps) {
     <article
       className={cn(
         "flex h-full min-h-0 w-full flex-col items-center justify-center overflow-hidden rounded-3xl px-4 text-center shadow-2xl transition-colors duration-300",
-        density === "compact" ? "py-2" : "py-6",
+        density === "compact"
+          ? "pt-1 pb-6"
+          : density === "grid"
+            ? "pt-4 pb-10"
+            : "py-6",
         attended ? "call-card-attended" : "call-card-pending",
       )}
     >
