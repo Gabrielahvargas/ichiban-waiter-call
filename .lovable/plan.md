@@ -2,31 +2,33 @@
 
 ## Qué se construye
 
-Una nueva página **"Botonera"** en el menú lateral, pensada para usarse desde el celular, con la misma idea de la página de Demostración pero actuando sobre las llamadas **reales** (producción), no sobre el demo:
+Una nueva página **"Botonera"** en el menú lateral, pensada para el celular, con la misma idea de la página de Demostración pero actuando sobre las llamadas **reales** (producción), no sobre el demo.
 
-- Una fila por mesa (100–1000) con dos botones grandes y táctiles:
-  - **Llamar** — equivale al botón 3 físico de esa mesa.
-  - **Atendida** — equivale al botón 4 físico de esa mesa.
-- Los botones respetan la configuración de cada mesa (botón y tipo de pulsación configurados en Configuración), igual que el demo.
-- Cada pulsación pasa por la misma función del servidor que usan los botones físicos (`ingest_button_event`), así que se conservan: una sola llamada activa por mesa, cooldown, registro de eventos, historial, métricas y asignación de mesero.
-- Después de cada llamada o atención, se sincroniza la **bombilla del área de meseros (Server)** con la lógica ya existente: roja mientras haya llamadas pendientes, blanca cuando no quede ninguna.
-- La llamada aparece en la TV/tablet en tiempo real, igual que si se hubiera presionado el botón físico.
-- Acceso **solo administradores** (misma protección que Meseros/Configuración).
-- Textos en inglés y español.
+### Diseño elegido: "Cuadrícula alto contraste" (prototipo v2)
 
-## Diseño móvil
+- Encabezado con título **Botonera** y una pastilla roja con el conteo de llamadas pendientes (ej. "3 pendientes"), que pulsa cuando hay llamadas.
+- Una tarjeta por mesa (100–1000), en lista de una columna:
+  - Izquierda: etiqueta "Mesa" y número grande en negrita.
+  - Derecha: dos botones grandes (mín. 56 px de alto) en dos columnas: **Llamar** (rojo) y **Atendida** (verde).
+- Mesa con llamada pendiente: tarjeta con borde rojo y brillo suave; el botón Llamar muestra el tiempo transcurrido ("Hace 2m" / "2m ago"); el botón Atendida se enfatiza para cerrarla.
+- Mesa sin llamada: estilo neutro, botones disponibles.
+- Se actualiza en tiempo real cuando llegan o se atienden llamadas.
 
-- Botones grandes (mínimo 48 px de alto), una mesa por fila, pensado para pulgar.
-- Estado visible por mesa: si tiene llamada pendiente se resalta, para saber cuál atender.
-- Avisos de confirmación ("Mesa 700 llamando", "Mesa 700 atendida", "ya tiene llamada pendiente", etc.) reutilizando los mensajes existentes.
+### Comportamiento
 
-## Limitación conocida (se indica honestamente)
+- Cada pulsación usa la misma función del servidor que los botones físicos (`ingest_button_event`, environment producción, source "remote_panel"): se conservan una sola llamada activa por mesa, cooldown, historial, métricas y asignación de mesero.
+- Respeta la configuración de botón/tipo de pulsación de cada mesa.
+- Tras cada llamada o atención se sincroniza la **bombilla del área de meseros (Server)**: roja mientras haya pendientes, blanca cuando no quede ninguna.
+- La llamada aparece en la TV/tablet en tiempo real, igual que con el botón físico.
+- Acceso **solo administradores**. Textos en inglés y español.
 
-- La bombilla de la mesa (ej. 701) que se pone roja 3 segundos con el botón físico lo hace una automatización de Smart Life; desde la botonera web no se puede disparar esa automatización. La botonera sí controla la luz compartida del área de meseros.
+## Limitación conocida
+
+- La bombilla de cada mesa (ej. 701) que se pone roja 3 segundos con el botón físico lo hace una automatización de Smart Life; desde la botonera web no se puede disparar. La botonera sí controla la luz compartida del área de meseros.
 
 ## Cambios técnicos
 
-- Nueva ruta `src/routes/remote.tsx` (nombre visible "Botonera" / "Remote panel"): reutiliza `ingestButtonEvent` con `environment: "production"`, `source: "remote_panel"`, lee la configuración de `dining_tables`, muestra llamadas pendientes en tiempo real (suscripción a `calls`) y llama `resyncSharedLight` tras cada acción.
+- Nueva ruta `src/routes/remote.tsx`: reutiliza `ingestButtonEvent` con `environment: "production"`, `source: "remote_panel"`; lee `dining_tables`; suscripción realtime a `calls` (producción) para estado pendiente y tiempos; llama `resyncSharedLight` tras cada acción.
 - Entrada nueva en el menú lateral (`src/components/AppShell.tsx`) con icono.
 - Claves i18n nuevas en `src/i18n/en.ts` y `src/i18n/es.ts`.
 - Sin cambios en base de datos, backend, Tuya, puente de Railway ni reglas de llamadas.
@@ -34,5 +36,5 @@ Una nueva página **"Botonera"** en el menú lateral, pensada para usarse desde 
 ## Verificación
 
 - TypeScript/build sin errores.
-- Prueba con Playwright en tamaño de celular: llamar una mesa desde la botonera, verla aparecer en la pantalla de llamadas, atenderla y confirmar que desaparece y que la luz compartida vuelve a blanco.
+- Prueba con Playwright en tamaño de celular: llamar una mesa, verla en la pantalla de llamadas, atenderla y confirmar que desaparece y la luz compartida vuelve a blanco.
 - No se publica; queda en vista previa hasta que pidas publicar.
