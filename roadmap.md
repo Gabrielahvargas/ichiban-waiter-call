@@ -22,4 +22,4 @@ Hecho:
 - [x] Botones físicos configurables por mesa (llamar/atender entre 1-4) en Configuración, con validación y resolución del mapeo en el servidor
 
 - [x] Botones físicos configurables por mesa (llamar/atender entre 1-4) en Configuración, con validación y resolución del mapeo en el servidor
-- [ ] Botonera móvil admin (/remote): botones Llamar/Atendida por mesa real, diseño v2 alto contraste; sync luz Server; EN/ES; no publicar
+- [x] Botonera móvil admin (/remote): botones Llamar/Atendida por mesa real, diseño v2 alto contraste; sync luz Server; EN/ES; no publicar
