@@ -6,6 +6,7 @@ export const en = {
   nav: {
     live: "Live calls",
     demo: "Demo mode",
+    remote: "Remote panel",
     history: "History",
     stats: "Statistics",
     settings: "Settings",
@@ -70,6 +71,16 @@ export const en = {
     ignoredNoPending: "Ignored: this table has no pending call",
     created: "Call created for table {table}",
     attended: "Table {table} marked as attended",
+  },
+  remote: {
+    title: "Remote panel",
+    subtitle: "Call or attend real tables from your phone.",
+    table: "Table",
+    call: "Call",
+    attend: "Attended",
+    pending: "{count} pending",
+    now: "Now",
+    ago: "{m}m ago",
   },
   history: {
     title: "History",
