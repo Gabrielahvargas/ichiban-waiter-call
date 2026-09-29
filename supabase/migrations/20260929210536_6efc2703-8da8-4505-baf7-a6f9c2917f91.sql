@@ -1,0 +1,1 @@
+UPDATE public.app_settings SET shared_light_device_id='ebcd90c862cf034944oxdu' WHERE id='global';
