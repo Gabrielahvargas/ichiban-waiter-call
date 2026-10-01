@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import {
   getSharedLightStatus,
+  relinkSharedLight,
   resyncSharedLight,
   type SharedLightStatus,
 } from "@/lib/shared-light.functions";
@@ -38,6 +39,7 @@ function IntegrationPage() {
   const { settings } = useSettings();
   const loadLight = useServerFn(getSharedLightStatus);
   const resync = useServerFn(resyncSharedLight);
+  const relink = useServerFn(relinkSharedLight);
   const [light, setLight] = useState<SharedLightStatus | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
@@ -211,6 +213,20 @@ function IntegrationPage() {
             {t("integration.sharedLightTitle")}
           </h2>
           <p className="mt-1 mb-3 text-sm text-muted-foreground">{t("integration.sharedLightNote")}</p>
+          {light ? (
+            <dl className="mb-3 space-y-2 text-sm">
+              <div>
+                <dt className="text-muted-foreground">{t("integration.sharedLightSearchName")}</dt>
+                <dd className="font-semibold">{light.searchName}</dd>
+              </div>
+              {light.relinkedAt ? (
+                <div>
+                  <dt className="text-muted-foreground">{t("integration.sharedLightRelinkedAt")}</dt>
+                  <dd className="tabular">{new Date(light.relinkedAt).toLocaleString(locale)}</dd>
+                </div>
+              ) : null}
+            </dl>
+          ) : null}
           {light === null ? (
             <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
           ) : !light.configured ? (
@@ -278,6 +294,29 @@ function IntegrationPage() {
               }}
             >
               {t("integration.sharedLightResync")}
+            </button>
+            <button
+              type="button"
+              className="rounded-lg border border-border px-4 py-2 text-sm font-semibold disabled:opacity-60"
+              disabled={syncing}
+              onClick={() => {
+                setSyncing(true);
+                setSyncMessage(null);
+                void relink({ data: undefined } as never)
+                  .then((res: { status: string; detail?: string }) => {
+                    const map: Record<string, string> = {
+                      relinked: t("integration.sharedLightRelinkOk"),
+                      unchanged: t("integration.sharedLightRelinkUnchanged"),
+                      not_found: t("integration.sharedLightRelinkNotFound"),
+                      ambiguous: t("integration.sharedLightRelinkAmbiguous"),
+                    };
+                    setSyncMessage(map[res.status] ?? `${t("integration.sharedLightError")}${res.detail ? ` — ${res.detail}` : ""}`);
+                  })
+                  .catch(() => setSyncMessage(t("integration.sharedLightError")))
+                  .finally(() => setSyncing(false));
+              }}
+            >
+              {t("integration.sharedLightRelink")}
             </button>
             {syncMessage ? <span className="text-sm text-muted-foreground">{syncMessage}</span> : null}
           </div>
