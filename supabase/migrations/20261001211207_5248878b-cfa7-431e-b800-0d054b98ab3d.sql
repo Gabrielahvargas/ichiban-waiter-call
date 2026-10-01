@@ -1,0 +1,1 @@
+ALTER TABLE public.app_settings ADD COLUMN IF NOT EXISTS shared_light_device_name text NOT NULL DEFAULT 'SERVER', ADD COLUMN IF NOT EXISTS shared_light_relinked_at timestamptz;
