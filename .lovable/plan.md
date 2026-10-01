@@ -1,24 +1,33 @@
-# Reconexión automática de la luz SERVER por nombre
+# Plan: luz SERVER automática + nuevas automatizaciones HAPPY
 
-## Qué va a pasar
-Cuando la app mande la luz a rojo o blanco y la luz guardada ya no responda (porque se borró y se volvió a crear), la app buscará sola en tu cuenta de Tuya una luz llamada **SERVER**, la guardará como la nueva luz y repetirá la orden. No tendrás que avisarme.
+## Parte 1 — Nuevas automatizaciones HAPPY (botón 2, un toque)
 
-## Cómo funciona
-1. La app recuerda el nombre de la luz: **SERVER** (se podrá cambiar en Administración > Integración).
-2. Antes de cada cambio de color, si la luz guardada da error o ya no existe:
-   - busca en Tuya una luz con ese nombre (sin importar mayúsculas),
-   - si hay exactamente una, la guarda y reenvía la orden,
-   - si no hay ninguna o hay varias con el mismo nombre, no adivina: lo anota en el registro y muestra un aviso en la página de Integración.
-3. En Integración se verá: nombre buscado, luz conectada y la fecha de la última reconexión automática, además de un botón "Buscar SERVER ahora".
+Las automatizaciones SHOW se quedan como están (no se tocan), igual que SERVER y FIRE.
 
-## Importante
-- Mantén el nombre exacto **SERVER** en Smart Life y no tengas dos luces con ese nombre.
-- Los botones de mesa (700, 800…) no cambian con esto; si alguna vez recreas un botón, seguirá haciendo falta volver a asignarlo.
+Se crean 9 automatizaciones nuevas en tu Smart Life, una por mesa: **100 HAPPY, 200 HAPPY … 900 HAPPY**.
+
+Cada una:
+1. Se activa con **un toque en el botón 2** de la botonera de esa mesa (el botón 2 no se usa para nada hoy).
+2. Pone las luces de esa mesa (el mismo grupo de luces que usa su SHOW) en **modo escena**.
+3. Espera **30 segundos**.
+4. Las regresa a **modo blanco**.
+
+La app de llamadas no cambia: el botón 2 sigue sin crear llamadas.
+
+Prueba: creo primero solo **100 HAPPY**, la pruebas apretando el botón 2 de la mesa 100, y si te gusta creo las otras 8.
+
+Nota: si al crearla Tuya no acepta el modo escena desde aquí, te aviso y te digo exactamente qué tocar en Smart Life.
+
+## Parte 2 — Reconexión automática de la luz SERVER por nombre
+
+Si la luz SERVER se borra y se vuelve a crear, la app la buscará sola por su nombre **SERVER** y se reconectará.
+
+- Antes de cada cambio de color, si la luz guardada ya no responde, la app busca en Tuya una luz llamada SERVER.
+- Si hay exactamente una, la guarda y repite la orden. Si no hay ninguna o hay dos con ese nombre, no adivina: lo muestra como aviso en la página Integración.
+- En Integración se verá la luz conectada, la fecha de la última reconexión y un botón "Buscar SERVER ahora".
+- Mantén el nombre exacto SERVER y no tengas dos luces con ese nombre.
 
 ## Detalles técnicos
-- Nueva columna `app_settings.shared_light_device_name` (default 'SERVER') y `shared_light_relinked_at`.
-- `tuya.server.ts`: `findLightByName(name)` usando `/v2.0/cloud/thing/device` paginado, filtrando `category = 'dj'` y nombre igual.
-- `shared-light.server.ts`: si `getDevice`/`setSharedLight` falla (permission deny, not found), llamar a `findLightByName`, actualizar el ID con cliente admin, reintentar una vez y registrar `shared_light_relinked` o `shared_light_relink_failed` en `tuya_event_log`.
-- `shared-light.functions.ts`: nueva función admin `relinkSharedLight`; el estado devuelve nombre y fecha de reconexión.
-- `integration.tsx` + i18n EN/ES: campo de nombre, fecha y botón.
-- Funciona en la app publicada solo después de publicar.
+- HAPPY: `POST /v1.0/homes/317212577/automations` por mesa, condición `switch_mode2 == click` sobre el ID de la botonera de esa mesa, acciones `deviceGroupDpIssue` al mismo grupo que su SHOW (`work_mode: scene` → `delay 30s` → `work_mode: white`), `match_type 1`, habilitada. Script puntual desde el servidor con las credenciales ya guardadas; no hay cambios de código en la app.
+  - Grupos: 100→20839853, 200→20839879, 300→20839971, 400→20840018, 500→20840053, 600→20840076, 700→20840096, 800→20857477, 900→20864861.
+- SERVER: columnas `app_settings.shared_light_device_name` (default 'SERVER') y `shared_light_relinked_at`; `findLightByName` en `tuya.server.ts` (categoría `dj`, nombre exacto); reintento único en `shared-light.server.ts` con registro en `tuya_event_log`; función admin `relinkSharedLight`; UI en `integration.tsx` + EN/ES. Llega a la app publicada solo al publicar.
