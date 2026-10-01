@@ -99,8 +99,12 @@ export async function findLightsByName(name: string): Promise<{ id: string; name
     const path = `/v2.0/cloud/thing/device?page_size=20${lastId ? `&last_id=${lastId}` : ""}`;
     const res = await tuyaRequest<{ id: string; name: string; category: string }[]>("GET", path, null, token);
     const rows = res.success && Array.isArray(res.result) ? res.result : [];
-    for (const d of rows) {
-      if (d.category === "dj" && (d.name ?? "").trim().toLowerCase() === wanted) found.push({ id: d.id, name: d.name });
+    // The project list shows the factory name; the Smart Life name comes from the device detail.
+    const details = await Promise.all(
+      rows.filter((d) => d.category === "dj").map((d) => getDevice(d.id).catch(() => null)),
+    );
+    for (const d of details) {
+      if (d && (d.name ?? "").trim().toLowerCase() === wanted) found.push({ id: d.id, name: d.name });
     }
     if (rows.length < 20) break;
     lastId = rows[rows.length - 1]!.id;
