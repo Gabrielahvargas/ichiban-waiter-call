@@ -97,14 +97,17 @@ export async function findLightsByName(name: string): Promise<{ id: string; name
   let lastId = "";
   for (let page = 0; page < 20; page++) {
     const path = `/v2.0/cloud/thing/device?page_size=20${lastId ? `&last_id=${lastId}` : ""}`;
-    const res = await tuyaRequest<{ id: string; name: string; category: string }[]>("GET", path, null, token);
-    const rows = res.success && Array.isArray(res.result) ? res.result : [];
-    // The project list shows the factory name; the Smart Life name comes from the device detail.
-    const details = await Promise.all(
-      rows.filter((d) => d.category === "dj").map((d) => getDevice(d.id).catch(() => null)),
+    const res = await tuyaRequest<{ id: string; name: string; customName?: string; category: string }[]>(
+      "GET",
+      path,
+      null,
+      token,
     );
-    for (const d of details) {
-      if (d && (d.name ?? "").trim().toLowerCase() === wanted) found.push({ id: d.id, name: d.name });
+    const rows = res.success && Array.isArray(res.result) ? res.result : [];
+    // `customName` is the name given in Smart Life; `name` is the factory name.
+    for (const d of rows) {
+      const shown = (d.customName || d.name || "").trim();
+      if (d.category === "dj" && shown.toLowerCase() === wanted) found.push({ id: d.id, name: shown });
     }
     if (rows.length < 20) break;
     lastId = rows[rows.length - 1]!.id;
