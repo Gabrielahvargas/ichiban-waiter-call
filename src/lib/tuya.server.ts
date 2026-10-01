@@ -89,6 +89,32 @@ export async function getDevice(deviceId: string): Promise<TuyaDeviceInfo | null
   return res.success && res.result ? res.result : null;
 }
 
+/** Finds light bulbs in the Tuya project whose name matches exactly (case-insensitive). */
+export async function findLightsByName(name: string): Promise<{ id: string; name: string }[]> {
+  const token = await getToken();
+  const wanted = name.trim().toLowerCase();
+  const found: { id: string; name: string }[] = [];
+  let lastId = "";
+  for (let page = 0; page < 20; page++) {
+    const path = `/v2.0/cloud/thing/device?page_size=20${lastId ? `&last_id=${lastId}` : ""}`;
+    const res = await tuyaRequest<{ id: string; name: string; customName?: string; category: string }[]>(
+      "GET",
+      path,
+      null,
+      token,
+    );
+    const rows = res.success && Array.isArray(res.result) ? res.result : [];
+    // `customName` is the name given in Smart Life; `name` is the factory name.
+    for (const d of rows) {
+      const shown = (d.customName || d.name || "").trim();
+      if (d.category === "dj" && shown.toLowerCase() === wanted) found.push({ id: d.id, name: shown });
+    }
+    if (rows.length < 20) break;
+    lastId = rows[rows.length - 1]!.id;
+  }
+  return found;
+}
+
 export async function getDeviceFunctionCodes(deviceId: string): Promise<string[]> {
   const token = await getToken();
   const res = await tuyaRequest<{ functions: { code: string }[] }>(

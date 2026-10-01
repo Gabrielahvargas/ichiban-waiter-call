@@ -5,6 +5,8 @@ export interface SharedLightStatus {
   configured: boolean;
   deviceId: string | null;
   deviceName: string | null;
+  searchName: string;
+  relinkedAt: string | null;
   online: boolean | null;
   linked: boolean;
   supportsColour: boolean;
@@ -30,10 +32,15 @@ export const getSharedLightStatus = createServerFn({ method: "POST" })
 
     const { data: settings } = await supabaseAdmin
       .from("app_settings")
-      .select("shared_light_device_id")
+      .select("shared_light_device_id, shared_light_device_name, shared_light_relinked_at")
       .eq("id", "global")
       .maybeSingle();
-    const deviceId = (settings as { shared_light_device_id?: string | null } | null)?.shared_light_device_id ?? null;
+    const s = settings as {
+      shared_light_device_id?: string | null;
+      shared_light_device_name?: string | null;
+      shared_light_relinked_at?: string | null;
+    } | null;
+    const deviceId = s?.shared_light_device_id ?? null;
 
     const { count } = await supabaseAdmin
       .from("calls")
@@ -45,6 +52,8 @@ export const getSharedLightStatus = createServerFn({ method: "POST" })
       configured: Boolean(deviceId),
       deviceId,
       deviceName: null,
+      searchName: s?.shared_light_device_name ?? "SERVER",
+      relinkedAt: s?.shared_light_relinked_at ?? null,
       online: null,
       linked: false,
       supportsColour: false,
@@ -79,4 +88,13 @@ export const resyncSharedLight = createServerFn({ method: "POST" })
     await assertAdmin(context as never);
     const { syncSharedLight } = await import("./shared-light.server");
     return await syncSharedLight("manual");
+  });
+
+/** Looks up the bulb by its configured name (e.g. SERVER) and re-links it. */
+export const relinkSharedLight = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context as never);
+    const { relinkSharedLightByName } = await import("./shared-light.server");
+    return await relinkSharedLightByName("manual_relink");
   });
