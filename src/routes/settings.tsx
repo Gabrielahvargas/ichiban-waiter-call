@@ -607,6 +607,88 @@ function Text({ label, value, onChange }: { label: string; value: string; onChan
   );
 }
 
+/** IANA time zones known to this runtime; reduced fallback for older browsers. */
+const TIMEZONES: string[] = (() => {
+  try {
+    return Intl.supportedValuesOf("timeZone");
+  } catch {
+    return [
+      "UTC",
+      "America/New_York",
+      "America/Chicago",
+      "America/Denver",
+      "America/Phoenix",
+      "America/Los_Angeles",
+      "America/Mexico_City",
+      "America/Bogota",
+      "America/Sao_Paulo",
+      "Europe/London",
+      "Europe/Madrid",
+      "Europe/Paris",
+      "Asia/Tokyo",
+      "Australia/Sydney",
+    ];
+  }
+})();
+
+/** Current time in a time zone, e.g. "8:55 PM"; "—" when the zone is invalid. */
+function timeInZone(tz: string): string {
+  try {
+    return new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: tz,
+    }).format(new Date());
+  } catch {
+    return "—";
+  }
+}
+
+function TimeZoneSelect({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const groups = new Map<string, string[]>();
+  for (const tz of TIMEZONES) {
+    const region = tz.includes("/") ? tz.split("/")[0] : "UTC";
+    const list = groups.get(region) ?? [];
+    list.push(tz);
+    groups.set(region, list);
+  }
+  const regions = [...groups.keys()].sort((a, b) =>
+    a === "UTC" ? -1 : b === "UTC" ? 1 : a.localeCompare(b),
+  );
+  const known = TIMEZONES.includes(value);
+  return (
+    <label className="block text-sm text-muted-foreground">
+      {label}
+      <select
+        className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-foreground"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      >
+        {!known && value ? <option value={value}>{value}</option> : null}
+        {regions.map((region) => (
+          <optgroup key={region} label={region === "UTC" ? "UTC" : `${region} —`}>
+            {groups.get(region)!.map((tz) => (
+              <option key={tz} value={tz}>
+                {tz.split("/").pop()?.replace(/_/g, " ")} ({timeInZone(tz)})
+              </option>
+            ))}
+          </optgroup>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+
 function Color({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
     <label className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
