@@ -17,8 +17,9 @@
 - Mostrar junto al selector una vista previa de la hora actual en la zona elegida, para que se vea al instante cuál conviene.
 - El valor elegido se guarda con el mismo mecanismo de Guardar/Descartar que ya existe; no se toca la base de datos (la columna `app_settings.timezone` ya existe).
 
-### 3. Ajuste del valor por defecto
+### 3. Zona horaria por defecto: Atlanta
 - `src/modules/config/useSettings.ts`: el valor de respaldo pasa de `America/Chicago` a `America/New_York` (Atlanta), aplicándose solo cuando nunca se haya guardado la configuración.
+- En la base de datos: actualizar el valor ya guardado en la configuración global (`app_settings.timezone`) a `America/New_York` con una migración, para que el reloj de la pantalla muestre Atlanta de inmediato sin que tengas que tocar nada. Si alguien cambia la zona después en Configuración, esa elección se respeta.
 
 ### 4. Traducciones
 - `src/i18n/en.ts` y `src/i18n/es.ts`: claves nuevas para la vista previa de hora del selector (por ejemplo "Current time in this zone" / "Hora actual en esta zona") y para el reloj si hace falta. La hora en sí no se traduce.
