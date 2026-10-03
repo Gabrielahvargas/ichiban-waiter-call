@@ -8,6 +8,13 @@
       "when": 1790989153618,
       "tag": "0000_add_timezone_to_screen_state_settings_payload_set_atlanta_default",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791054816184,
+      "tag": "0001_sales_ranking_tabit",
+      "breakpoints": true
     }
   ]
 }
