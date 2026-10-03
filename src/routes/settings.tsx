@@ -235,11 +235,14 @@ function SettingsPage() {
               value={draft.local_red_seconds}
               onChange={(v) => set("local_red_seconds", v)}
             />
-            <Text
+            <TimeZoneSelect
               label={t("settings.timezone")}
               value={draft.timezone}
               onChange={(v) => set("timezone", v)}
             />
+            <p className="text-xs text-muted-foreground">
+              {t("settings.timezonePreview")}: {timeInZone(draft.timezone)}
+            </p>
             <Num
               label={t("settings.dinnerStart")}
               value={draft.dinner_start_hour}
