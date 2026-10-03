@@ -656,7 +656,7 @@ function TimeZoneSelect({
 }) {
   const groups = new Map<string, string[]>();
   for (const tz of TIMEZONES) {
-    const region = tz.includes("/") ? tz.split("/")[0] : "UTC";
+    const region = tz.includes("/") ? (tz.split("/")[0] ?? "UTC") : "UTC";
     const list = groups.get(region) ?? [];
     list.push(tz);
     groups.set(region, list);
