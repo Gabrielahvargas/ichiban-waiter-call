@@ -435,6 +435,21 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_cron_token: {
+        Row: {
+          id: string
+          token: string
+        }
+        Insert: {
+          id?: string
+          token?: string
+        }
+        Update: {
+          id?: string
+          token?: string
+        }
+        Relationships: []
+      }
       sales_items: {
         Row: {
           amount: number
@@ -808,6 +823,7 @@ export type Database = {
         Returns: Json
       }
       is_team_member: { Args: { _user_id: string }; Returns: boolean }
+      sales_cron_token_valid: { Args: { p_token: string }; Returns: boolean }
       screen_assignment_board: {
         Args: {
           p_pin_session: string
@@ -859,6 +875,7 @@ export type Database = {
         }
         Returns: Json
       }
+      trigger_sales_sync: { Args: never; Returns: undefined }
     }
     Enums: {
       app_env: "production" | "demo"
