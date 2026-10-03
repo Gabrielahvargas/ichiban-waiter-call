@@ -179,6 +179,7 @@ export const en = {
     pinSaved: "PIN updated",
     pinInvalidFormat: "The PIN must be 4 to 8 digits.",
     timezone: "Restaurant time zone",
+    timezonePreview: "Current time in this zone",
     dinnerStart: "Dinner shift starts at (hour)",
   },
   admins: {

@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1790989153618,
+      "tag": "0000_add_timezone_to_screen_state_settings_payload_set_atlanta_default",
+      "breakpoints": true
+    }
+  ]
+}
