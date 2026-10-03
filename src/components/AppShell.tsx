@@ -10,6 +10,7 @@ import {
   Settings,
   ShieldCheck,
   PlugZap,
+  Trophy,
 } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
 
@@ -40,6 +41,7 @@ const NAV = [
   { to: "/screens", key: "nav.screens", icon: MonitorSmartphone },
   { to: "/history", key: "nav.history", icon: History },
   { to: "/stats", key: "nav.stats", icon: BarChart3 },
+  { to: "/sales", key: "nav.sales", icon: Trophy },
   { to: "/settings", key: "nav.settings", icon: Settings },
   { to: "/admins", key: "nav.admins", icon: ShieldCheck },
   { to: "/integration", key: "nav.integration", icon: PlugZap },
