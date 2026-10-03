@@ -181,6 +181,7 @@ export const es: Dictionary = {
     pinSaved: "PIN actualizado",
     pinInvalidFormat: "El PIN debe tener de 4 a 8 dígitos.",
     timezone: "Zona horaria del restaurante",
+    timezonePreview: "Hora actual en esta zona",
     dinnerStart: "El turno de cena empieza a la hora",
   },
   admins: {

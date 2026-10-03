@@ -18,6 +18,18 @@ import { defaultShift, todayIso } from "@/modules/waiters/api";
 import { TABLE_NUMBERS, type Call, type ScreenOrientation, type Shift } from "@/modules/shared/types";
 import { cn } from "@/lib/utils";
 
+/** True when the value is a time zone the runtime can format (IANA name or "UTC"). */
+function isValidTimeZone(tz?: string | null): boolean {
+  if (!tz) return false;
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+
 export const Route = createFileRoute("/screen")({
   ssr: false,
   head: () => ({
@@ -289,6 +301,22 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
   const attendedWindow = state?.settings.attended_card_seconds ?? 10;
   const soundMode = state?.settings.sound_alerts ?? "none";
 
+  // Header clock: restaurant time zone from settings, falling back to the device zone.
+  const clockZone = isValidTimeZone(state?.settings.timezone)
+    ? (state!.settings.timezone as string)
+    : Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const clock = useMemo(() => {
+    const label = clockZone.split("/").pop()?.replace(/_/g, " ") ?? clockZone;
+    const time = new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: clockZone,
+    }).format(new Date(now));
+    return `${label} · ${time}`;
+  }, [clockZone, now]);
+
+
   const visible: Call[] = useMemo(() => {
     const calls = state?.calls ?? [];
     return calls
@@ -406,6 +434,12 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
           >
             {t("screen.menu")}
           </button>
+          <span
+            className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold tabular"
+            title={clockZone}
+          >
+            {clock}
+          </span>
           <span
             className={cn(
               "rounded-full px-3 py-1 text-sm font-semibold",

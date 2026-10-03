@@ -66,6 +66,8 @@ export interface ScreenState {
     sound_id?: string;
     sound_volume?: number;
     custom_sound_url?: string | null;
+    /** Restaurant time zone (IANA name) used for the header clock; falls back to the device zone. */
+    timezone?: string;
   };
   calls: Call[];
 }
