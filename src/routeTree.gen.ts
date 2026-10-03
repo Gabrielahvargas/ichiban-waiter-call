@@ -16,11 +16,13 @@ import { Route as DemoRouteImport } from './routes/demo'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as IntegrationRouteImport } from './routes/integration'
 import { Route as RemoteRouteImport } from './routes/remote'
+import { Route as SalesRouteImport } from './routes/sales'
 import { Route as ScreenRouteImport } from './routes/screen'
 import { Route as ScreensRouteImport } from './routes/screens'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as WaitersRouteImport } from './routes/waiters'
+import { Route as ApiPublicSalesSyncRouteImport } from './routes/api/public/sales-sync'
 import { Route as ApiPublicTuyaEventsRouteImport } from './routes/api/public/tuya-events'
 
 const IndexRoute = IndexRouteImport.update({
@@ -58,6 +60,11 @@ const RemoteRoute = RemoteRouteImport.update({
   path: '/remote',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SalesRoute = SalesRouteImport.update({
+  id: '/sales',
+  path: '/sales',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScreenRoute = ScreenRouteImport.update({
   id: '/screen',
   path: '/screen',
@@ -83,6 +90,11 @@ const WaitersRoute = WaitersRouteImport.update({
   path: '/waiters',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSalesSyncRoute = ApiPublicSalesSyncRouteImport.update({
+  id: '/api/public/sales-sync',
+  path: '/api/public/sales-sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTuyaEventsRoute = ApiPublicTuyaEventsRouteImport.update({
   id: '/api/public/tuya-events',
   path: '/api/public/tuya-events',
@@ -97,11 +109,13 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
   '/remote': typeof RemoteRoute
+  '/sales': typeof SalesRoute
   '/screen': typeof ScreenRoute
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/waiters': typeof WaitersRoute
+  '/api/public/sales-sync': typeof ApiPublicSalesSyncRoute
   '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
 }
 export interface FileRoutesByTo {
@@ -112,11 +126,13 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
   '/remote': typeof RemoteRoute
+  '/sales': typeof SalesRoute
   '/screen': typeof ScreenRoute
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/waiters': typeof WaitersRoute
+  '/api/public/sales-sync': typeof ApiPublicSalesSyncRoute
   '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
 }
 export interface FileRoutesById {
@@ -128,11 +144,13 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/integration': typeof IntegrationRoute
   '/remote': typeof RemoteRoute
+  '/sales': typeof SalesRoute
   '/screen': typeof ScreenRoute
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
   '/waiters': typeof WaitersRoute
+  '/api/public/sales-sync': typeof ApiPublicSalesSyncRoute
   '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
 }
 export interface FileRouteTypes {
@@ -145,11 +163,13 @@ export interface FileRouteTypes {
     | '/history'
     | '/integration'
     | '/remote'
+    | '/sales'
     | '/screen'
     | '/screens'
     | '/settings'
     | '/stats'
     | '/waiters'
+    | '/api/public/sales-sync'
     | '/api/public/tuya-events'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -160,11 +180,13 @@ export interface FileRouteTypes {
     | '/history'
     | '/integration'
     | '/remote'
+    | '/sales'
     | '/screen'
     | '/screens'
     | '/settings'
     | '/stats'
     | '/waiters'
+    | '/api/public/sales-sync'
     | '/api/public/tuya-events'
   id:
     | '__root__'
@@ -175,11 +197,13 @@ export interface FileRouteTypes {
     | '/history'
     | '/integration'
     | '/remote'
+    | '/sales'
     | '/screen'
     | '/screens'
     | '/settings'
     | '/stats'
     | '/waiters'
+    | '/api/public/sales-sync'
     | '/api/public/tuya-events'
   fileRoutesById: FileRoutesById
 }
@@ -191,11 +215,13 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   IntegrationRoute: typeof IntegrationRoute
   RemoteRoute: typeof RemoteRoute
+  SalesRoute: typeof SalesRoute
   ScreenRoute: typeof ScreenRoute
   ScreensRoute: typeof ScreensRoute
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
   WaitersRoute: typeof WaitersRoute
+  ApiPublicSalesSyncRoute: typeof ApiPublicSalesSyncRoute
   ApiPublicTuyaEventsRoute: typeof ApiPublicTuyaEventsRoute
 }
 
@@ -250,6 +276,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RemoteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/sales': {
+      id: '/sales'
+      path: '/sales'
+      fullPath: '/sales'
+      preLoaderRoute: typeof SalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/screen': {
       id: '/screen'
       path: '/screen'
@@ -285,6 +318,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WaitersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/sales-sync': {
+      id: '/api/public/sales-sync'
+      path: '/api/public/sales-sync'
+      fullPath: '/api/public/sales-sync'
+      preLoaderRoute: typeof ApiPublicSalesSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/tuya-events': {
       id: '/api/public/tuya-events'
       path: '/api/public/tuya-events'
@@ -303,11 +343,13 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   IntegrationRoute: IntegrationRoute,
   RemoteRoute: RemoteRoute,
+  SalesRoute: SalesRoute,
   ScreenRoute: ScreenRoute,
   ScreensRoute: ScreensRoute,
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
   WaitersRoute: WaitersRoute,
+  ApiPublicSalesSyncRoute: ApiPublicSalesSyncRoute,
   ApiPublicTuyaEventsRoute: ApiPublicTuyaEventsRoute,
 }
 export const routeTree = rootRouteImport

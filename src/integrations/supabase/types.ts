@@ -408,6 +408,203 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_category_rules: {
+        Row: {
+          created_at: string
+          id: string
+          match_type: string
+          pattern: string
+          priority: number
+          target: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          match_type?: string
+          pattern: string
+          priority?: number
+          target: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          match_type?: string
+          pattern?: string
+          priority?: number
+          target?: string
+        }
+        Relationships: []
+      }
+      sales_cron_token: {
+        Row: {
+          id: string
+          token: string
+        }
+        Insert: {
+          id?: string
+          token?: string
+        }
+        Update: {
+          id?: string
+          token?: string
+        }
+        Relationships: []
+      }
+      sales_items: {
+        Row: {
+          amount: number
+          created_at: string
+          environment: Database["public"]["Enums"]["app_env"]
+          external_id: string
+          id: string
+          product_name: string
+          quantity: number
+          service_date: string | null
+          shift: Database["public"]["Enums"]["app_shift"] | null
+          sold_at: string
+          tabit_category: string | null
+          waiter_external_id: string | null
+          waiter_name: string | null
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          environment?: Database["public"]["Enums"]["app_env"]
+          external_id: string
+          id?: string
+          product_name: string
+          quantity?: number
+          service_date?: string | null
+          shift?: Database["public"]["Enums"]["app_shift"] | null
+          sold_at: string
+          tabit_category?: string | null
+          waiter_external_id?: string | null
+          waiter_name?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          environment?: Database["public"]["Enums"]["app_env"]
+          external_id?: string
+          id?: string
+          product_name?: string
+          quantity?: number
+          service_date?: string | null
+          shift?: Database["public"]["Enums"]["app_shift"] | null
+          sold_at?: string
+          tabit_category?: string | null
+          waiter_external_id?: string | null
+          waiter_name?: string | null
+        }
+        Relationships: []
+      }
+      sales_sync_runs: {
+        Row: {
+          environment: Database["public"]["Enums"]["app_env"]
+          error: string | null
+          finished_at: string | null
+          id: string
+          items_upserted: number
+          started_at: string
+          status: string
+          trigger: string
+        }
+        Insert: {
+          environment?: Database["public"]["Enums"]["app_env"]
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          items_upserted?: number
+          started_at?: string
+          status?: string
+          trigger?: string
+        }
+        Update: {
+          environment?: Database["public"]["Enums"]["app_env"]
+          error?: string | null
+          finished_at?: string | null
+          id?: string
+          items_upserted?: number
+          started_at?: string
+          status?: string
+          trigger?: string
+        }
+        Relationships: []
+      }
+      sales_sync_state: {
+        Row: {
+          consecutive_failures: number
+          cursor: string | null
+          environment: Database["public"]["Enums"]["app_env"]
+          last_attempt_at: string | null
+          last_error: string | null
+          last_success_at: string | null
+          next_attempt_at: string | null
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          consecutive_failures?: number
+          cursor?: string | null
+          environment: Database["public"]["Enums"]["app_env"]
+          last_attempt_at?: string | null
+          last_error?: string | null
+          last_success_at?: string | null
+          next_attempt_at?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          consecutive_failures?: number
+          cursor?: string | null
+          environment?: Database["public"]["Enums"]["app_env"]
+          last_attempt_at?: string | null
+          last_error?: string | null
+          last_success_at?: string | null
+          next_attempt_at?: string | null
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sales_waiters: {
+        Row: {
+          environment: Database["public"]["Enums"]["app_env"]
+          external_id: string
+          id: string
+          name: string
+          updated_at: string
+          waiter_id: string | null
+        }
+        Insert: {
+          environment?: Database["public"]["Enums"]["app_env"]
+          external_id: string
+          id?: string
+          name: string
+          updated_at?: string
+          waiter_id?: string | null
+        }
+        Update: {
+          environment?: Database["public"]["Enums"]["app_env"]
+          external_id?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          waiter_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_waiters_waiter_id_fkey"
+            columns: ["waiter_id"]
+            isOneToOne: false
+            referencedRelation: "waiters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       screen_pin_sessions: {
         Row: {
           created_at: string
@@ -626,6 +823,7 @@ export type Database = {
         Returns: Json
       }
       is_team_member: { Args: { _user_id: string }; Returns: boolean }
+      sales_cron_token_valid: { Args: { p_token: string }; Returns: boolean }
       screen_assignment_board: {
         Args: {
           p_pin_session: string
@@ -677,6 +875,7 @@ export type Database = {
         }
         Returns: Json
       }
+      trigger_sales_sync: { Args: never; Returns: undefined }
     }
     Enums: {
       app_env: "production" | "demo"
