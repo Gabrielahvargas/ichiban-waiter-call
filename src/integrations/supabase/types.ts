@@ -71,6 +71,7 @@ export type Database = {
           shared_light_alert_color: string
           shared_light_color: string
           shared_light_device_id: string | null
+          shared_light_device_ids: string[]
           shared_light_device_name: string
           shared_light_relinked_at: string | null
           sound_alerts: string
@@ -94,6 +95,7 @@ export type Database = {
           shared_light_alert_color?: string
           shared_light_color?: string
           shared_light_device_id?: string | null
+          shared_light_device_ids?: string[]
           shared_light_device_name?: string
           shared_light_relinked_at?: string | null
           sound_alerts?: string
@@ -117,6 +119,7 @@ export type Database = {
           shared_light_alert_color?: string
           shared_light_color?: string
           shared_light_device_id?: string | null
+          shared_light_device_ids?: string[]
           shared_light_device_name?: string
           shared_light_relinked_at?: string | null
           sound_alerts?: string
