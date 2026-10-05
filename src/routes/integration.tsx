@@ -232,45 +232,51 @@ function IntegrationPage() {
           ) : !light.configured ? (
             <p className="text-sm text-status-down">{t("integration.sharedLightMissing")}</p>
           ) : (
-            <dl className="space-y-2 text-sm">
-              <div>
-                <dt className="text-muted-foreground">{t("integration.sharedLightDevice")}</dt>
-                <dd className="font-mono text-xs break-all">
-                  {light.deviceName ? `${light.deviceName} · ` : ""}
-                  {light.deviceId}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{t("integration.sharedLightLinked")}</dt>
-                <dd className={light.linked ? "font-semibold text-status-ok" : "font-semibold text-status-down"}>
-                  {light.linked ? t("integration.sharedLightLinked") : t("integration.sharedLightNotLinked")}
-                  {light.linked
-                    ? ` · ${light.online ? t("integration.sharedLightOnline") : t("integration.sharedLightOffline")}`
-                    : ""}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{t("integration.sharedLightSupport")}</dt>
-                <dd>
-                  {[
-                    light.supportsColour ? t("integration.sharedLightColour") : null,
-                    light.supportsWhite ? t("integration.sharedLightWhite") : null,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ") || "—"}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{t("integration.sharedLightPending")}</dt>
-                <dd className="tabular">{light.pending}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">{t("integration.sharedLightCurrent")}</dt>
-                <dd className="font-semibold">
-                  {light.pending > 0 ? t("integration.sharedLightRed") : t("integration.sharedLightWhiteState")}
-                </dd>
-              </div>
-            </dl>
+            <div className="space-y-3 text-sm">
+              {light.devices.map((d) => (
+                <dl key={d.deviceId} className="space-y-1 rounded-lg border border-border p-3">
+                  <div>
+                    <dt className="text-muted-foreground">{t("integration.sharedLightDevice")}</dt>
+                    <dd className="font-mono text-xs break-all">
+                      {d.deviceName ? `${d.deviceName} · ` : ""}
+                      {d.deviceId}
+                    </dd>
+                  </div>
+                  <div>
+                    <dd className={d.linked ? "font-semibold text-status-ok" : "font-semibold text-status-down"}>
+                      {d.linked ? t("integration.sharedLightLinked") : t("integration.sharedLightNotLinked")}
+                      {d.linked
+                        ? ` · ${d.online ? t("integration.sharedLightOnline") : t("integration.sharedLightOffline")}`
+                        : ""}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">{t("integration.sharedLightSupport")}</dt>
+                    <dd>
+                      {[
+                        d.supportsColour ? t("integration.sharedLightColour") : null,
+                        d.supportsWhite ? t("integration.sharedLightWhite") : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ") || "—"}
+                    </dd>
+                  </div>
+                  {d.error ? <p className="text-status-down">{d.error}</p> : null}
+                </dl>
+              ))}
+              <dl className="space-y-2">
+                <div>
+                  <dt className="text-muted-foreground">{t("integration.sharedLightPending")}</dt>
+                  <dd className="tabular">{light.pending}</dd>
+                </div>
+                <div>
+                  <dt className="text-muted-foreground">{t("integration.sharedLightCurrent")}</dt>
+                  <dd className="font-semibold">
+                    {light.pending > 0 ? t("integration.sharedLightRed") : t("integration.sharedLightWhiteState")}
+                  </dd>
+                </div>
+              </dl>
+            </div>
           )}
           {light?.error ? <p className="mt-2 text-sm text-status-down">{light.error}</p> : null}
           <div className="mt-4 flex flex-wrap items-center gap-3">
