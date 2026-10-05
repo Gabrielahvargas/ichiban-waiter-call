@@ -292,6 +292,8 @@ function IntegrationPage() {
                     setSyncMessage(
                       res.status === "applied"
                         ? t("integration.sharedLightApplied")
+                        : res.status === "partial"
+                          ? t("integration.sharedLightPartial")
                         : `${t("integration.sharedLightError")}${res.detail ? ` — ${res.detail}` : ""}`,
                     );
                   })
@@ -314,7 +316,6 @@ function IntegrationPage() {
                       relinked: t("integration.sharedLightRelinkOk"),
                       unchanged: t("integration.sharedLightRelinkUnchanged"),
                       not_found: t("integration.sharedLightRelinkNotFound"),
-                      ambiguous: t("integration.sharedLightRelinkAmbiguous"),
                     };
                     setSyncMessage(map[res.status] ?? `${t("integration.sharedLightError")}${res.detail ? ` — ${res.detail}` : ""}`);
                   })
