@@ -92,7 +92,9 @@ export async function getDevice(deviceId: string): Promise<TuyaDeviceInfo | null
 /** Finds light bulbs in the Tuya project whose name matches exactly (case-insensitive). */
 export async function findLightsByName(name: string): Promise<{ id: string; name: string }[]> {
   const token = await getToken();
-  const wanted = name.trim().toLowerCase();
+  const norm = (s: string) => s.trim().replace(/\s+/g, " ").toLowerCase();
+  const wanted = norm(name);
+  const LIGHT_CATEGORIES = new Set(["dj", "dd", "fwd", "xdd", "dc"]);
   const found: { id: string; name: string }[] = [];
   let lastId = "";
   for (let page = 0; page < 20; page++) {
@@ -107,7 +109,7 @@ export async function findLightsByName(name: string): Promise<{ id: string; name
     // `customName` is the name given in Smart Life; `name` is the factory name.
     for (const d of rows) {
       const shown = (d.customName || d.name || "").trim();
-      if (d.category === "dj" && shown.toLowerCase() === wanted) found.push({ id: d.id, name: shown });
+      if (LIGHT_CATEGORIES.has(d.category) && norm(shown) === wanted) found.push({ id: d.id, name: shown });
     }
     if (rows.length < 20) break;
     lastId = rows[rows.length - 1]!.id;

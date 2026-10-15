@@ -65,8 +65,12 @@ export async function relinkSharedLightByName(reason: string): Promise<RelinkRes
       await log({ source: `light:${reason}`, result: "shared_light_relink_failed", error: `no_light_named_${name}` });
       return { status: "not_found", detail: name };
     }
-    const newIds = matches.map((m) => m.id).sort();
     const current = [...storedIds(s)].sort();
+    // Keep stored bulbs that still exist even if a search briefly misses them.
+    const missing = current.filter((id) => !matches.some((m) => m.id === id));
+    const stillThere = await Promise.all(missing.map((id) => getDevice(id).catch(() => null)));
+    const kept = missing.filter((_, i) => stillThere[i]);
+    const newIds = [...new Set([...matches.map((m) => m.id), ...kept])].sort();
     if (newIds.join(",") === current.join(",")) return { status: "unchanged", deviceIds: newIds };
     await db
       .from("app_settings")
@@ -98,16 +102,14 @@ export async function syncSharedLight(reason: string): Promise<SharedLightSyncRe
   const state: "red" | "white" = pending > 0 ? "red" : "white";
   let relinked = false;
 
-  // No bulbs stored, or one of them is gone: refresh the list by name.
-  const reachable = await Promise.all(ids.map((id) => getDevice(id).catch(() => null)));
-  if (ids.length === 0 || reachable.some((d) => !d)) {
-    const r = await relinkSharedLightByName(reason);
-    if ((r.status === "relinked" || r.status === "unchanged") && r.deviceIds) {
-      relinked = r.status === "relinked";
-      ids = r.deviceIds;
-    } else if (ids.length === 0) {
-      return { status: "skipped", detail: `shared_light_${r.status}` };
-    }
+  // Always refresh by name so a newly paired SERVER bulb is picked up even
+  // while the already-stored ones keep responding.
+  const r = await relinkSharedLightByName(reason);
+  if ((r.status === "relinked" || r.status === "unchanged") && r.deviceIds) {
+    relinked = r.status === "relinked";
+    ids = r.deviceIds;
+  } else if (ids.length === 0) {
+    return { status: "skipped", detail: `shared_light_${r.status}` };
   }
 
   const results = await Promise.allSettled(ids.map((id) => setSharedLight(id, state)));

@@ -10,7 +10,7 @@ import { useSession } from "@/modules/auth/useSession";
  */
 export function Protected({ children, adminOnly = false }: { children: ReactNode; adminOnly?: boolean }) {
   const { t } = useI18n();
-  const { user, isAdmin, ready } = useSession();
+  const { user, isAdmin, ready, rolesReady } = useSession();
 
   if (!ready) {
     return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
@@ -25,6 +25,10 @@ export function Protected({ children, adminOnly = false }: { children: ReactNode
         </Link>
       </div>
     );
+  }
+
+  if (adminOnly && !rolesReady) {
+    return <p className="p-8 text-center text-muted-foreground">{t("common.loading")}</p>;
   }
 
   if (adminOnly && !isAdmin) {
