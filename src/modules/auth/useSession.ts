@@ -10,6 +10,8 @@ export interface SessionState {
   profile: Profile | null;
   isAdmin: boolean;
   ready: boolean;
+  /** True once the user's roles have been loaded (isAdmin is reliable). */
+  rolesReady: boolean;
 }
 
 export function useSession(): SessionState {
@@ -17,6 +19,7 @@ export function useSession(): SessionState {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [ready, setReady] = useState(false);
+  const [rolesReady, setRolesReady] = useState(false);
 
   useEffect(() => {
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
@@ -37,23 +40,35 @@ export function useSession(): SessionState {
 
   useEffect(() => {
     const userId = session?.user?.id;
-    if (!userId) return;
+    if (!userId) {
+      setRolesReady(false);
+      return;
+    }
     let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
 
-    void (async () => {
-      const [{ data: prof }, { data: roles }] = await Promise.all([
+    const load = async (attempt: number) => {
+      const [{ data: prof }, { data: roles, error }] = await Promise.all([
         supabase.from("profiles").select("id, email, display_name, language").eq("id", userId).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", userId),
       ]);
       if (cancelled) return;
       if (prof) setProfile(prof as Profile);
+      if (error) {
+        // Network hiccup: retry instead of wrongly showing "not admin".
+        timer = setTimeout(() => void load(attempt + 1), Math.min(1000 * 2 ** attempt, 10000));
+        return;
+      }
       setIsAdmin((roles ?? []).some((r) => r.role === "admin"));
-    })();
+      setRolesReady(true);
+    };
+    void load(0);
 
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
     };
   }, [session?.user?.id]);
 
-  return { session, user: session?.user ?? null, profile, isAdmin, ready };
+  return { session, user: session?.user ?? null, profile, isAdmin, ready, rolesReady };
 }
