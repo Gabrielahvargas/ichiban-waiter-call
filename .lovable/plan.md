@@ -1,42 +1,21 @@
-# Luz de mesa roja fija hasta que atiendan la llamada
+# La segunda luz SERVER no se pone roja
 
-## Qué pasa hoy
+## Qué encontré
+- Hoy a las 15:08 la app volvió a buscar las luces llamadas SERVER y **solo encontró una** (`eb15a95d8e1165e21bdxqv`). Desde entonces solo esa recibe el rojo y el blanco, y le llegan sin errores.
+- La otra luz (la que conectaste al final) no aparece en la búsqueda. Al volver a vincularla en Smart Life, Tuya le da un **identificador nuevo**, y algo impide que la app la reconozca. Puede ser que el nombre no sea exactamente "SERVER" (espacio de más, "Server 2", otro texto), que Tuya la registre como otro tipo de aparato, o que todavía no esté vinculada al proyecto de Tuya.
+- Todavía no sé cuál de estas es la causa. Lo primero es confirmarlo.
 
-- Al presionar el botón de llamar, la luz de la mesa la enciende una automatización de Smart Life ("HAPPY") que la pone en escena y **la regresa a blanco sola a los 30 segundos**. Por eso los meseros pierden la señal.
-- La app solo controla las luces SERVER del área de meseros (rojo con llamadas pendientes, blanco cuando no quedan). Las luces de cada mesa no las toca.
-- En la base de datos cada mesa ya tiene registradas sus luces (`bulbs`), pero sin el identificador de Tuya (`external_id` vacío).
+## Pasos
+1. **Revisar en Tuya** todos los aparatos cuyo nombre contenga "server", sin importar mayúsculas, espacios ni tipo. Así veo el identificador nuevo, el nombre exacto, el tipo de aparato y si está en línea. No se inventa ningún identificador.
+2. **Arreglar la causa que salga**:
+   - Si el nombre es un poco distinto: hacer que la búsqueda acepte el nombre sin importar mayúsculas ni espacios extra. Si el nombre es otro, te digo exactamente cómo renombrarla en Smart Life.
+   - Si Tuya la registra como otro tipo de luz: hacer que la búsqueda acepte cualquier tipo de luz, no solo uno.
+   - Si no está vinculada al proyecto de Tuya: te digo los pasos en Smart Life o en la plataforma de Tuya para vincularla.
+3. **Guardar las dos luces** en Configuración y mostrarlas en la página Integración. Además, si una luz desaparece un momento de la búsqueda, la app no la va a borrar sola de la lista mientras la otra siga respondiendo.
+4. **Probar en la vista previa**: hago una llamada de prueba y confirmo en el registro que **las dos** reciben rojo y después blanco. Luego borro la llamada de prueba.
 
-## Objetivo
+No se cambian las luces de las mesas ni las automatizaciones. Nada se publica sin tu permiso. Ojo: la app publicada necesita publicarse para recibir este arreglo.
 
-- Botón de llamar → la luz de esa mesa se pone **roja con brillo máximo y se queda así** hasta que atiendan.
-- Botón verde (atendida) → la luz de esa mesa **regresa a blanco normal**.
-- Las luces SERVER siguen funcionando igual que hoy. No se toca nada más.
-
-## Cambios
-
-1. **Guardar el identificador de cada luz de mesa (persistente, no hardcodeado)**
-   - Las luces de mesa en Tuya son **grupos** (ya conocidos de las automatizaciones HAPPY: 200→20839879, 300→20839971, 400→20840018, 500→20840053, 600→20840076, 700→20840096, 800→20857477, 900→20864861).
-   - Se guardan en `bulbs.external_id` de cada mesa. Falta confirmar el grupo de las mesas **100 y 1000**: se buscan en la cuenta de Tuya por nombre; si no aparecen, se deja claro cuál falta y no se inventa.
-   - Se agrega el campo editable en Configuración para poder corregirlo sin tocar código.
-
-2. **Control de luz de mesa desde la app (backend)**
-   - Nueva función `syncTableLight(table_number, "red" | "white")` en el servidor, reutilizando la misma lógica de comandos que ya usa la luz SERVER (rojo = color rojo brillo máximo, blanco = luz normal). Los grupos de Tuya usan el endpoint `/v1.0/device-groups/{id}/commands`.
-   - Se llama en los mismos puntos donde hoy se sincroniza la luz SERVER:
-     - Al llegar un evento de botón (llamar → rojo; atendida → blanco).
-     - Desde el panel remoto `/remote` (llamar/atendida).
-   - Cada envío queda registrado en el registro de eventos Tuya, igual que las SERVER.
-
-3. **Apagar la automatización HAPPY que regresa la luz a blanco a los 30 s**
-   - Si HAPPY sigue activa, apagaría el rojo a los 30 segundos aunque la app lo mantenga. Una vez verificado que la app enciende el rojo fijo, se **desactivan las automatizaciones HAPPY** (100–900) vía API de Tuya. No se borran: quedan apagadas por si se quieren reactivar.
-
-4. **Verificación en vista previa**
-   - Llamada de prueba en una mesa → luz roja y se mantiene (esperar más de 30 s para confirmar que ya no regresa sola).
-   - Atender → luz blanca.
-   - Revisar el registro de eventos para confirmar que el comando llegó a la luz correcta.
-   - Confirmar que las dos luces SERVER siguen igual.
-
-## Notas técnicas
-
-- Archivos: `src/lib/tuya.server.ts` (comandos a grupos), nuevo `src/lib/table-light.server.ts`, `src/routes/api/public/tuya-events.ts`, `src/routes/remote.tsx`, `src/routes/settings.tsx`, traducciones EN/ES.
-- Sin cambios de base de datos destructivos: solo se llenan `external_id` existentes.
-- No se publica; todo queda en vista previa hasta que lo pidas.
+## Detalles técnicos
+- `findLightsByName` (`src/lib/tuya.server.ts`) hoy compara el nombre exacto y solo acepta la categoría `dj`. La nueva versión compara el nombre sin importar mayúsculas ni espacios y acepta las categorías de luz (`dj`, `dd`, `fwd`, `xdd`, `dc`).
+- `relinkSharedLightByName` (`shared-light.server.ts`): fusionar las luces encontradas con los IDs guardados que sigan en línea, en lugar de reemplazar toda la lista.
