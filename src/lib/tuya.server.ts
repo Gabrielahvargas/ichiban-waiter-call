@@ -145,49 +145,30 @@ function pickCodes(available: string[]) {
   };
 }
 
-/** Temporary probe: tries candidate group endpoints and reports raw responses. */
-export async function probeGroupEndpoints(groupId: string): Promise<Record<string, unknown>> {
-  const token = await getToken();
-  const out: Record<string, unknown> = {};
-  const homeId = "317212577";
-  const scene = { commands: [{ code: "switch_led", value: true }, { code: "work_mode", value: "scene" }] };
-  const group = await tuyaRequest<{ dev_id?: string }>("GET", `/v2.0/cloud/thing/group/${groupId}`, null, token);
-  const devId = group.result?.dev_id;
-  const tries: [string, "GET" | "POST", string, unknown][] = [
-    ["group_dev_id", "GET", `/v2.0/cloud/thing/group/${groupId}`, null],
-    ...(devId
-      ? ([
-          ["dev_functions", "GET", `/v1.0/devices/${devId}/functions`, null],
-          ["dev_cmd", "POST", `/v1.0/devices/${devId}/commands`, scene],
-        ] as [string, "GET" | "POST", string, unknown][])
-      : []),
-  ];
-  for (const [key, method, path, body] of tries) {
-    try {
-      out[key] = await tuyaRequest(method, path, body, token);
-    } catch (e) {
-      out[key] = { error: e instanceof Error ? e.message : "unknown" };
-    }
-  }
-  return out;
-}
-
-/** Sends commands to a Tuya light group (the per-table bulb groups). */
-export async function sendGroupCommands(
-  groupId: string,
-  commands: { code: string; value: unknown }[],
-): Promise<void> {
-  const token = await getToken();
-  const res = await tuyaRequest<boolean>("POST", `/v1.0/groups/${groupId}/commands`, { commands }, token);
-  if (!res.success) throw new Error(`tuya_group_command_failed: ${res.msg ?? "unknown"}`);
-}
-
-/** Puts a table's light group into scene mode (the SHOW/HAPPY effect). */
+/**
+ * Puts a table's light group into scene mode (the SHOW/HAPPY effect).
+ * Tuya has no cloud command endpoint for groups, so the command goes to the
+ * group's virtual device (dev_id), which fans it out to every bulb.
+ */
 export async function setGroupScene(groupId: string): Promise<void> {
-  await sendGroupCommands(groupId, [
-    { code: "switch_led", value: true },
-    { code: "work_mode", value: "scene" },
-  ]);
+  const token = await getToken();
+  const group = await tuyaRequest<{ dev_id?: string }>(
+    "GET",
+    `/v2.0/cloud/thing/group/${groupId}`,
+    null,
+    token,
+  );
+  const devId = group.result?.dev_id;
+  if (!group.success || !devId) {
+    throw new Error(`tuya_group_not_found: ${group.msg ?? "unknown"}`);
+  }
+  const res = await tuyaRequest<boolean>("POST", `/v1.0/devices/${devId}/commands`, {
+    commands: [
+      { code: "switch_led", value: true },
+      { code: "work_mode", value: "scene" },
+    ],
+  }, token);
+  if (!res.success) throw new Error(`tuya_group_command_failed: ${res.msg ?? "unknown"}`);
 }
 
 export type SharedLightState = "red" | "white";
