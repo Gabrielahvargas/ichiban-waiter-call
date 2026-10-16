@@ -16,6 +16,15 @@ async function assertAdmin(context: { supabase: any; userId: string }) {
   if (!isAdmin) throw new Error("Forbidden");
 }
 
+/** Temporary: probes Tuya group endpoints to find the working command path. */
+export const debugProbeGroup = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context as never);
+    const { probeGroupEndpoints } = await import("./tuya.server");
+    return await probeGroupEndpoints("20840053");
+  });
+
 /**
  * Triggers the same light effect as the physical button 1 double-click (the
  * SHOW automation) on every table's light group, from the remote panel.

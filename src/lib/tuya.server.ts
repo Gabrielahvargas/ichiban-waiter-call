@@ -145,6 +145,27 @@ function pickCodes(available: string[]) {
   };
 }
 
+/** Temporary probe: tries candidate group endpoints and reports raw responses. */
+export async function probeGroupEndpoints(groupId: string): Promise<Record<string, unknown>> {
+  const token = await getToken();
+  const out: Record<string, unknown> = {};
+  const homeId = "317212577";
+  const tries: [string, "GET" | "POST", string, unknown][] = [
+    ["get_group", "GET", `/v1.0/groups/${groupId}`, null],
+    ["home_groups", "GET", `/v1.0/homes/${homeId}/groups`, null],
+    ["group_commands", "POST", `/v1.0/groups/${groupId}/commands`, { commands: [{ code: "work_mode", value: "scene" }] }],
+    ["home_group_commands", "POST", `/v1.0/homes/${homeId}/groups/${groupId}/commands`, { commands: [{ code: "work_mode", value: "scene" }] }],
+  ];
+  for (const [key, method, path, body] of tries) {
+    try {
+      out[key] = await tuyaRequest(method, path, body, token);
+    } catch (e) {
+      out[key] = { error: e instanceof Error ? e.message : "unknown" };
+    }
+  }
+  return out;
+}
+
 /** Sends commands to a Tuya light group (the per-table bulb groups). */
 export async function sendGroupCommands(
   groupId: string,
