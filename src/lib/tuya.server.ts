@@ -150,7 +150,10 @@ function pickCodes(available: string[]) {
  * Tuya has no cloud command endpoint for groups, so the command goes to the
  * group's virtual device (dev_id), which fans it out to every bulb.
  */
-export async function setGroupScene(groupId: string): Promise<void> {
+async function sendGroupCommands(
+  groupId: string,
+  commands: { code: string; value: unknown }[],
+): Promise<void> {
   const token = await getToken();
   const group = await tuyaRequest<{ dev_id?: string }>(
     "GET",
@@ -162,13 +165,35 @@ export async function setGroupScene(groupId: string): Promise<void> {
   if (!group.success || !devId) {
     throw new Error(`tuya_group_not_found: ${group.msg ?? "unknown"}`);
   }
-  const res = await tuyaRequest<boolean>("POST", `/v1.0/devices/${devId}/commands`, {
-    commands: [
-      { code: "switch_led", value: true },
-      { code: "work_mode", value: "scene" },
-    ],
-  }, token);
+  const res = await tuyaRequest<boolean>("POST", `/v1.0/devices/${devId}/commands`, { commands }, token);
   if (!res.success) throw new Error(`tuya_group_command_failed: ${res.msg ?? "unknown"}`);
+}
+
+export async function setGroupScene(groupId: string): Promise<void> {
+  await sendGroupCommands(groupId, [
+    { code: "switch_led", value: true },
+    { code: "work_mode", value: "scene" },
+  ]);
+}
+
+/** Back to the normal white light (same as the HAPPY automation's last step). */
+export async function setGroupWhite(groupId: string): Promise<void> {
+  await sendGroupCommands(groupId, [
+    { code: "switch_led", value: true },
+    { code: "work_mode", value: "white" },
+  ]);
+}
+
+export async function setGroupPower(groupId: string, on: boolean): Promise<void> {
+  await sendGroupCommands(
+    groupId,
+    on
+      ? [
+          { code: "switch_led", value: true },
+          { code: "work_mode", value: "white" },
+        ]
+      : [{ code: "switch_led", value: false }],
+  );
 }
 
 export type SharedLightState = "red" | "white";
