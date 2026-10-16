@@ -152,13 +152,12 @@ export async function probeGroupEndpoints(groupId: string): Promise<Record<strin
   const homeId = "317212577";
   const scene = { commands: [{ code: "work_mode", value: "scene" }] };
   const tries: [string, "GET" | "POST", string, unknown][] = [
-    ["cloud_thing_groups", "GET", `/v2.0/cloud/thing/group?page_size=20`, null],
-    ["cloud_thing_group_get", "GET", `/v2.0/cloud/thing/group/${groupId}`, null],
-    ["cloud_thing_group_cmd", "POST", `/v2.0/cloud/thing/group/${groupId}/commands`, scene],
-    ["device_groups_cmd", "POST", `/v1.0/device-groups/${groupId}/commands`, scene],
-    ["group_as_device", "POST", `/v1.0/devices/${groupId}/commands`, scene],
-    ["home_group_get", "GET", `/v1.0/homes/${homeId}/groups/${groupId}`, null],
-    ["scene_trigger_group", "POST", `/v1.0/homes/${homeId}/scenes/${groupId}/trigger`, null],
+    ["cmd_singular", "POST", `/v2.0/cloud/thing/group/${groupId}/command`, scene],
+    ["cmd_dps", "POST", `/v2.0/cloud/thing/group/${groupId}/dps`, { dps: { "2": "scene" } }],
+    ["cmd_publish", "POST", `/v2.0/cloud/thing/group/${groupId}/publish`, scene],
+    ["iot03_cmd", "POST", `/v1.0/iot-03/groups/${groupId}/commands`, scene],
+    ["group_control", "POST", `/v1.0/groups/${groupId}/control`, scene],
+    ["thing_model_cmd", "POST", `/v2.0/cloud/thing/group/${groupId}/shadow/commands`, scene],
   ];
   for (const [key, method, path, body] of tries) {
     try {
