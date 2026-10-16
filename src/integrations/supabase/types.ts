@@ -275,6 +275,7 @@ export type Database = {
           created_at: string
           gateway_external_id: string | null
           id: string
+          light_group_id: string | null
           table_number: number
           tuya_cursor_ms: number | null
         }
@@ -288,6 +289,7 @@ export type Database = {
           created_at?: string
           gateway_external_id?: string | null
           id?: string
+          light_group_id?: string | null
           table_number: number
           tuya_cursor_ms?: number | null
         }
@@ -301,6 +303,7 @@ export type Database = {
           created_at?: string
           gateway_external_id?: string | null
           id?: string
+          light_group_id?: string | null
           table_number?: number
           tuya_cursor_ms?: number | null
         }

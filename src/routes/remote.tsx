@@ -8,6 +8,7 @@ import { Protected } from "@/components/Protected";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import { resyncSharedLight } from "@/lib/shared-light.functions";
+import { triggerShowAllTables } from "@/lib/show-all.functions";
 import { ingestButtonEvent, type IngestResult } from "@/modules/events/ingest";
 import { cn } from "@/lib/utils";
 import { TABLE_NUMBERS, type Call, type DiningTable } from "@/modules/shared/types";
@@ -27,7 +28,9 @@ export const Route = createFileRoute("/remote")({
 function RemotePage() {
   const { t } = useI18n();
   const syncLight = useServerFn(resyncSharedLight);
+  const showAll = useServerFn(triggerShowAllTables);
   const [busy, setBusy] = useState<string | null>(null);
+  const [showBusy, setShowBusy] = useState(false);
   const [tables, setTables] = useState<DiningTable[]>([]);
   const [pending, setPending] = useState<Map<number, Call>>(new Map());
   const [, setTick] = useState(0);
@@ -93,6 +96,25 @@ function RemotePage() {
     }
   }
 
+  async function runShowAll() {
+    if (!window.confirm(t("remote.showAllConfirm"))) return;
+    setShowBusy(true);
+    try {
+      const res = await showAll({});
+      toast.success(t("remote.showAllDone", { count: res.sent.length }));
+      if (res.failed.length) {
+        toast.error(t("remote.showAllFailed", { tables: res.failed.map((f) => f.table).join(", ") }));
+      }
+      if (res.skipped.length) {
+        toast.warning(t("remote.showAllSkipped", { tables: res.skipped.join(", ") }));
+      }
+    } catch {
+      toast.error(t("errors.generic"));
+    } finally {
+      setShowBusy(false);
+    }
+  }
+
   function elapsedLabel(call: Call): string {
     const mins = Math.floor((Date.now() - new Date(call.called_at).getTime()) / 60000);
     return mins < 1 ? t("remote.now") : t("remote.ago", { m: mins });
@@ -118,6 +140,15 @@ function RemotePage() {
               </div>
             )}
           </div>
+
+          <button
+            type="button"
+            disabled={showBusy}
+            onClick={() => void runShowAll()}
+            className="mb-4 flex h-14 w-full items-center justify-center rounded-2xl border border-border bg-secondary text-sm font-bold uppercase tracking-tight text-foreground transition-colors hover:bg-accent disabled:opacity-60"
+          >
+            {t("remote.showAll")}
+          </button>
 
           <div className="space-y-3">
             {TABLE_NUMBERS.map((tableNumber) => {

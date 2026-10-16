@@ -82,6 +82,11 @@ export const en = {
     pending: "{count} pending",
     now: "Now",
     ago: "{m}m ago",
+    showAll: "SHOW on all tables",
+    showAllConfirm: "Run the light effect on every table now?",
+    showAllDone: "Effect sent to {count} tables",
+    showAllFailed: "Failed on tables: {tables}",
+    showAllSkipped: "No light group configured for tables: {tables}",
   },
   history: {
     title: "History",

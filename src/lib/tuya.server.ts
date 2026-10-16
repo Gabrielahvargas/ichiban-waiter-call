@@ -145,6 +145,32 @@ function pickCodes(available: string[]) {
   };
 }
 
+/**
+ * Puts a table's light group into scene mode (the SHOW/HAPPY effect).
+ * Tuya has no cloud command endpoint for groups, so the command goes to the
+ * group's virtual device (dev_id), which fans it out to every bulb.
+ */
+export async function setGroupScene(groupId: string): Promise<void> {
+  const token = await getToken();
+  const group = await tuyaRequest<{ dev_id?: string }>(
+    "GET",
+    `/v2.0/cloud/thing/group/${groupId}`,
+    null,
+    token,
+  );
+  const devId = group.result?.dev_id;
+  if (!group.success || !devId) {
+    throw new Error(`tuya_group_not_found: ${group.msg ?? "unknown"}`);
+  }
+  const res = await tuyaRequest<boolean>("POST", `/v1.0/devices/${devId}/commands`, {
+    commands: [
+      { code: "switch_led", value: true },
+      { code: "work_mode", value: "scene" },
+    ],
+  }, token);
+  if (!res.success) throw new Error(`tuya_group_command_failed: ${res.msg ?? "unknown"}`);
+}
+
 export type SharedLightState = "red" | "white";
 
 /**
