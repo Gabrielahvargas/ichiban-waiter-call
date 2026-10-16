@@ -640,6 +640,27 @@ export type Database = {
           },
         ]
       }
+      show_runs: {
+        Row: {
+          id: string
+          started_at: string
+          stop_at: string | null
+          stopped_at: string | null
+        }
+        Insert: {
+          id?: string
+          started_at?: string
+          stop_at?: string | null
+          stopped_at?: string | null
+        }
+        Update: {
+          id?: string
+          started_at?: string
+          stop_at?: string | null
+          stopped_at?: string | null
+        }
+        Relationships: []
+      }
       tuya_event_log: {
         Row: {
           button: number | null
