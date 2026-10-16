@@ -8,7 +8,16 @@ import { Protected } from "@/components/Protected";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import { resyncSharedLight } from "@/lib/shared-light.functions";
-import { triggerShowAllTables } from "@/lib/show-all.functions";
+import {
+  getActiveShowRun,
+  setAllTableLights,
+  stopShowAllTables,
+  triggerShowAllTables,
+  type ShowAllResult,
+} from "@/lib/show-all.functions";
+
+const AUTO_STOP_KEY = "ichiban.remote.showAutoStop";
+const AUTO_STOP_OPTIONS = [0, 10, 30, 60, 120];
 import { ingestButtonEvent, type IngestResult } from "@/modules/events/ingest";
 import { cn } from "@/lib/utils";
 import { TABLE_NUMBERS, type Call, type DiningTable } from "@/modules/shared/types";
@@ -29,8 +38,23 @@ function RemotePage() {
   const { t } = useI18n();
   const syncLight = useServerFn(resyncSharedLight);
   const showAll = useServerFn(triggerShowAllTables);
+  const stopAll = useServerFn(stopShowAllTables);
+  const powerAll = useServerFn(setAllTableLights);
+  const activeRun = useServerFn(getActiveShowRun);
   const [busy, setBusy] = useState<string | null>(null);
   const [showBusy, setShowBusy] = useState(false);
+  const [autoStop, setAutoStopState] = useState(0);
+  const [stopAt, setStopAt] = useState<string | null>(null);
+  const [clock, setClock] = useState(() => Date.now());
+
+  useEffect(() => {
+    const saved = Number(window.localStorage.getItem(AUTO_STOP_KEY));
+    if (AUTO_STOP_OPTIONS.includes(saved)) setAutoStopState(saved);
+  }, []);
+  function setAutoStop(v: number) {
+    setAutoStopState(v);
+    window.localStorage.setItem(AUTO_STOP_KEY, String(v));
+  }
   const [tables, setTables] = useState<DiningTable[]>([]);
   const [pending, setPending] = useState<Map<number, Call>>(new Map());
   const [, setTick] = useState(0);
@@ -96,24 +120,75 @@ function RemotePage() {
     }
   }
 
+  function reportResult(res: ShowAllResult, doneKey: string) {
+    toast.success(t(doneKey, { count: res.sent.length }));
+    if (res.failed.length) {
+      toast.error(t("remote.showAllFailed", { tables: res.failed.map((f) => f.table).join(", ") }));
+    }
+    if (res.skipped.length) {
+      toast.warning(t("remote.showAllSkipped", { tables: res.skipped.join(", ") }));
+    }
+  }
+
   async function runShowAll() {
     if (!window.confirm(t("remote.showAllConfirm"))) return;
     setShowBusy(true);
     try {
-      const res = await showAll({});
-      toast.success(t("remote.showAllDone", { count: res.sent.length }));
-      if (res.failed.length) {
-        toast.error(t("remote.showAllFailed", { tables: res.failed.map((f) => f.table).join(", ") }));
-      }
-      if (res.skipped.length) {
-        toast.warning(t("remote.showAllSkipped", { tables: res.skipped.join(", ") }));
-      }
+      const res = await showAll({ data: { autoStopSeconds: autoStop } });
+      setStopAt(res.stopAt ?? null);
+      reportResult(res, "remote.showAllDone");
     } catch {
       toast.error(t("errors.generic"));
     } finally {
       setShowBusy(false);
     }
   }
+
+  const runStop = useCallback(async (auto = false) => {
+    setShowBusy(true);
+    setStopAt(null);
+    try {
+      const res = await stopAll({});
+      reportResult(res, auto ? "remote.autoStopped" : "remote.stopAllDone");
+    } catch {
+      toast.error(t("errors.generic"));
+    } finally {
+      setShowBusy(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stopAll, t]);
+
+  async function runPower(action: "on" | "off") {
+    if (action === "off" && !window.confirm(t("remote.lightsOffConfirm"))) return;
+    setShowBusy(true);
+    setStopAt(null);
+    try {
+      const res = await powerAll({ data: { action } });
+      reportResult(res, action === "on" ? "remote.lightsOnDone" : "remote.lightsOffDone");
+    } catch {
+      toast.error(t("errors.generic"));
+    } finally {
+      setShowBusy(false);
+    }
+  }
+
+  // Resume a pending auto-stop (e.g. the phone was closed and reopened).
+  useEffect(() => {
+    void activeRun({}).then((run) => {
+      if (run) setStopAt(run.stopAt);
+    }).catch(() => undefined);
+  }, [activeRun]);
+
+  useEffect(() => {
+    if (!stopAt) return;
+    const id = window.setInterval(() => setClock(Date.now()), 1000);
+    return () => window.clearInterval(id);
+  }, [stopAt]);
+
+  const remaining = stopAt ? Math.max(0, Math.ceil((new Date(stopAt).getTime() - clock) / 1000)) : null;
+  useEffect(() => {
+    if (remaining === 0 && !showBusy) void runStop(true);
+  }, [remaining, showBusy, runStop]);
 
   function elapsedLabel(call: Call): string {
     const mins = Math.floor((Date.now() - new Date(call.called_at).getTime()) / 60000);
