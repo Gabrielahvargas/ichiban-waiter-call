@@ -150,11 +150,15 @@ export async function probeGroupEndpoints(groupId: string): Promise<Record<strin
   const token = await getToken();
   const out: Record<string, unknown> = {};
   const homeId = "317212577";
+  const scene = { commands: [{ code: "work_mode", value: "scene" }] };
   const tries: [string, "GET" | "POST", string, unknown][] = [
-    ["get_group", "GET", `/v1.0/groups/${groupId}`, null],
-    ["home_groups", "GET", `/v1.0/homes/${homeId}/groups`, null],
-    ["group_commands", "POST", `/v1.0/groups/${groupId}/commands`, { commands: [{ code: "work_mode", value: "scene" }] }],
-    ["home_group_commands", "POST", `/v1.0/homes/${homeId}/groups/${groupId}/commands`, { commands: [{ code: "work_mode", value: "scene" }] }],
+    ["cloud_thing_groups", "GET", `/v2.0/cloud/thing/group?page_size=20`, null],
+    ["cloud_thing_group_get", "GET", `/v2.0/cloud/thing/group/${groupId}`, null],
+    ["cloud_thing_group_cmd", "POST", `/v2.0/cloud/thing/group/${groupId}/commands`, scene],
+    ["device_groups_cmd", "POST", `/v1.0/device-groups/${groupId}/commands`, scene],
+    ["group_as_device", "POST", `/v1.0/devices/${groupId}/commands`, scene],
+    ["home_group_get", "GET", `/v1.0/homes/${homeId}/groups/${groupId}`, null],
+    ["scene_trigger_group", "POST", `/v1.0/homes/${homeId}/scenes/${groupId}/trigger`, null],
   ];
   for (const [key, method, path, body] of tries) {
     try {
