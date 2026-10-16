@@ -216,14 +216,63 @@ function RemotePage() {
             )}
           </div>
 
-          <button
-            type="button"
-            disabled={showBusy}
-            onClick={() => void runShowAll()}
-            className="mb-4 flex h-14 w-full items-center justify-center rounded-2xl border border-border bg-secondary text-sm font-bold uppercase tracking-tight text-foreground transition-colors hover:bg-accent disabled:opacity-60"
-          >
-            {t("remote.showAll")}
-          </button>
+          <div className="mb-4 space-y-2 rounded-2xl border border-border bg-card p-3">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                disabled={showBusy}
+                onClick={() => void runShowAll()}
+                className="flex h-14 items-center justify-center rounded-xl border border-border bg-secondary text-sm font-bold uppercase tracking-tight text-foreground transition-colors hover:bg-accent disabled:opacity-60"
+              >
+                {t("remote.showAll")}
+              </button>
+              <button
+                type="button"
+                disabled={showBusy}
+                onClick={() => void runStop(false)}
+                className="flex h-14 items-center justify-center rounded-xl border border-border bg-secondary text-sm font-bold uppercase tracking-tight text-foreground transition-colors hover:bg-accent disabled:opacity-60"
+              >
+                {t("remote.stopAll")}
+              </button>
+            </div>
+            <label className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span>{t("remote.autoStop")}</span>
+              <select
+                value={autoStop}
+                onChange={(e) => setAutoStop(Number(e.target.value))}
+                className="rounded-lg border border-border bg-background px-2 py-1 text-foreground"
+              >
+                {AUTO_STOP_OPTIONS.map((s) => (
+                  <option key={s} value={s}>
+                    {s === 0 ? t("remote.autoStopNever") : s < 60 ? `${s} s` : `${s / 60} min`}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {remaining !== null && remaining > 0 && (
+              <p className="text-center text-xs font-bold text-foreground">
+                {t("remote.stopsIn", { s: remaining })}
+              </p>
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                disabled={showBusy}
+                onClick={() => void runPower("on")}
+                className="flex h-12 items-center justify-center rounded-xl bg-secondary text-xs font-bold uppercase tracking-tight text-foreground transition-colors hover:bg-accent disabled:opacity-60"
+              >
+                {t("remote.lightsOn")}
+              </button>
+              <button
+                type="button"
+                disabled={showBusy}
+                onClick={() => void runPower("off")}
+                className="flex h-12 items-center justify-center rounded-xl bg-secondary text-xs font-bold uppercase tracking-tight text-muted-foreground transition-colors hover:bg-accent disabled:opacity-60"
+              >
+                {t("remote.lightsOff")}
+              </button>
+            </div>
+          </div>
 
           <div className="space-y-3">
             {TABLE_NUMBERS.map((tableNumber) => {
