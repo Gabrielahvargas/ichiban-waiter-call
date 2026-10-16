@@ -8,6 +8,7 @@ import { Protected } from "@/components/Protected";
 import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/i18n";
 import { resyncSharedLight } from "@/lib/shared-light.functions";
+import { triggerShowAllTables } from "@/lib/show-all.functions";
 import { ingestButtonEvent, type IngestResult } from "@/modules/events/ingest";
 import { cn } from "@/lib/utils";
 import { TABLE_NUMBERS, type Call, type DiningTable } from "@/modules/shared/types";
@@ -27,7 +28,9 @@ export const Route = createFileRoute("/remote")({
 function RemotePage() {
   const { t } = useI18n();
   const syncLight = useServerFn(resyncSharedLight);
+  const showAll = useServerFn(triggerShowAllTables);
   const [busy, setBusy] = useState<string | null>(null);
+  const [showBusy, setShowBusy] = useState(false);
   const [tables, setTables] = useState<DiningTable[]>([]);
   const [pending, setPending] = useState<Map<number, Call>>(new Map());
   const [, setTick] = useState(0);
