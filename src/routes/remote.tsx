@@ -96,6 +96,25 @@ function RemotePage() {
     }
   }
 
+  async function runShowAll() {
+    if (!window.confirm(t("remote.showAllConfirm"))) return;
+    setShowBusy(true);
+    try {
+      const res = await showAll({});
+      toast.success(t("remote.showAllDone", { count: res.sent.length }));
+      if (res.failed.length) {
+        toast.error(t("remote.showAllFailed", { tables: res.failed.map((f) => f.table).join(", ") }));
+      }
+      if (res.skipped.length) {
+        toast.warning(t("remote.showAllSkipped", { tables: res.skipped.join(", ") }));
+      }
+    } catch {
+      toast.error(t("errors.generic"));
+    } finally {
+      setShowBusy(false);
+    }
+  }
+
   function elapsedLabel(call: Call): string {
     const mins = Math.floor((Date.now() - new Date(call.called_at).getTime()) / 60000);
     return mins < 1 ? t("remote.now") : t("remote.ago", { m: mins });
@@ -121,6 +140,15 @@ function RemotePage() {
               </div>
             )}
           </div>
+
+          <button
+            type="button"
+            disabled={showBusy}
+            onClick={() => void runShowAll()}
+            className="mb-4 flex h-14 w-full items-center justify-center rounded-2xl border border-border bg-secondary text-sm font-bold uppercase tracking-tight text-foreground transition-colors hover:bg-accent disabled:opacity-60"
+          >
+            {t("remote.showAll")}
+          </button>
 
           <div className="space-y-3">
             {TABLE_NUMBERS.map((tableNumber) => {
