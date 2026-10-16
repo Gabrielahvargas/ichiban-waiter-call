@@ -84,6 +84,11 @@ export const es: Dictionary = {
     pending: "{count} pendientes",
     now: "Ahora",
     ago: "Hace {m}m",
+    showAll: "SHOW en todas las mesas",
+    showAllConfirm: "¿Activar el efecto de luces en todas las mesas ahora?",
+    showAllDone: "Efecto enviado a {count} mesas",
+    showAllFailed: "Falló en las mesas: {tables}",
+    showAllSkipped: "Sin grupo de luces configurado en las mesas: {tables}",
   },
   history: {
     title: "Historial",

@@ -145,6 +145,24 @@ function pickCodes(available: string[]) {
   };
 }
 
+/** Sends commands to a Tuya light group (the per-table bulb groups). */
+export async function sendGroupCommands(
+  groupId: string,
+  commands: { code: string; value: unknown }[],
+): Promise<void> {
+  const token = await getToken();
+  const res = await tuyaRequest<boolean>("POST", `/v1.0/groups/${groupId}/commands`, { commands }, token);
+  if (!res.success) throw new Error(`tuya_group_command_failed: ${res.msg ?? "unknown"}`);
+}
+
+/** Puts a table's light group into scene mode (the SHOW/HAPPY effect). */
+export async function setGroupScene(groupId: string): Promise<void> {
+  await sendGroupCommands(groupId, [
+    { code: "switch_led", value: true },
+    { code: "work_mode", value: "scene" },
+  ]);
+}
+
 export type SharedLightState = "red" | "white";
 
 /**
