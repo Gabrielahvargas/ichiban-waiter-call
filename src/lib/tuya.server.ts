@@ -150,14 +150,17 @@ export async function probeGroupEndpoints(groupId: string): Promise<Record<strin
   const token = await getToken();
   const out: Record<string, unknown> = {};
   const homeId = "317212577";
-  const scene = { commands: [{ code: "work_mode", value: "scene" }] };
+  const scene = { commands: [{ code: "switch_led", value: true }, { code: "work_mode", value: "scene" }] };
+  const group = await tuyaRequest<{ dev_id?: string }>("GET", `/v2.0/cloud/thing/group/${groupId}`, null, token);
+  const devId = group.result?.dev_id;
   const tries: [string, "GET" | "POST", string, unknown][] = [
-    ["cmd_singular", "POST", `/v2.0/cloud/thing/group/${groupId}/command`, scene],
-    ["cmd_dps", "POST", `/v2.0/cloud/thing/group/${groupId}/dps`, { dps: { "2": "scene" } }],
-    ["cmd_publish", "POST", `/v2.0/cloud/thing/group/${groupId}/publish`, scene],
-    ["iot03_cmd", "POST", `/v1.0/iot-03/groups/${groupId}/commands`, scene],
-    ["group_control", "POST", `/v1.0/groups/${groupId}/control`, scene],
-    ["thing_model_cmd", "POST", `/v2.0/cloud/thing/group/${groupId}/shadow/commands`, scene],
+    ["group_dev_id", "GET", `/v2.0/cloud/thing/group/${groupId}`, null],
+    ...(devId
+      ? ([
+          ["dev_functions", "GET", `/v1.0/devices/${devId}/functions`, null],
+          ["dev_cmd", "POST", `/v1.0/devices/${devId}/commands`, scene],
+        ] as [string, "GET" | "POST", string, unknown][])
+      : []),
   ];
   for (const [key, method, path, body] of tries) {
     try {
