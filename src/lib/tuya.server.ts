@@ -150,23 +150,31 @@ function pickCodes(available: string[]) {
  * Tuya has no cloud command endpoint for groups, so the command goes to the
  * group's virtual device (dev_id), which fans it out to every bulb.
  */
+/** Sends the commands to EVERY bulb in the Tuya group (the group's dev_id is only one member). */
 async function sendGroupCommands(
   groupId: string,
   commands: { code: string; value: unknown }[],
 ): Promise<void> {
   const token = await getToken();
-  const group = await tuyaRequest<{ dev_id?: string }>(
+  const members = await tuyaRequest<{ data_list?: { dev_id: string }[] }>(
     "GET",
-    `/v2.0/cloud/thing/group/${groupId}`,
+    `/v2.0/cloud/thing/group/${groupId}/devices?page_no=1&page_size=50`,
     null,
     token,
   );
-  const devId = group.result?.dev_id;
-  if (!group.success || !devId) {
-    throw new Error(`tuya_group_not_found: ${group.msg ?? "unknown"}`);
+  const devIds = (members.result?.data_list ?? []).map((d) => d.dev_id).filter(Boolean);
+  if (!members.success || devIds.length === 0) {
+    throw new Error(`tuya_group_not_found: ${members.msg ?? "unknown"}`);
   }
-  const res = await tuyaRequest<boolean>("POST", `/v1.0/devices/${devId}/commands`, { commands }, token);
-  if (!res.success) throw new Error(`tuya_group_command_failed: ${res.msg ?? "unknown"}`);
+  const results = await Promise.allSettled(
+    devIds.map((devId) =>
+      tuyaRequest<boolean>("POST", `/v1.0/devices/${devId}/commands`, { commands }, token),
+    ),
+  );
+  const failed = results.filter((r) => r.status === "rejected" || !r.value.success);
+  if (failed.length) {
+    throw new Error(`tuya_group_command_failed: ${failed.length}/${devIds.length} bulbs`);
+  }
 }
 
 export async function setGroupScene(groupId: string): Promise<void> {
