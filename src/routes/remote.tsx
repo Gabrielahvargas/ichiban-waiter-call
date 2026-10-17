@@ -124,6 +124,9 @@ function RemotePage() {
     toast.success(t(doneKey, { count: res.sent.length }));
     if (res.failed.length) {
       toast.error(t("remote.showAllFailed", { tables: res.failed.map((f) => f.table).join(", ") }));
+      if (res.failed.some((f) => f.error.includes("=quota"))) {
+        toast.warning(t("remote.tuyaQuota"), { duration: 10000 });
+      }
     }
     if (res.skipped.length) {
       toast.warning(t("remote.showAllSkipped", { tables: res.skipped.join(", ") }));

@@ -88,6 +88,7 @@ export const es: Dictionary = {
     showAllConfirm: "¿Activar el efecto de luces en todas las mesas ahora?",
     showAllDone: "Efecto enviado a {count} mesas",
     showAllFailed: "Falló en las mesas: {tables}",
+    tuyaQuota: "Algunos focos no respondieron porque se llenó el cupo de focos de tu cuenta de Tuya. Hay que ampliarlo en iot.tuya.com.",
     showAllSkipped: "Sin grupo de luces configurado en las mesas: {tables}",
     stopAll: "Detener en todas",
     stopAllDone: "Luz normal en {count} mesas",

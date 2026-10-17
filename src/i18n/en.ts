@@ -86,6 +86,7 @@ export const en = {
     showAllConfirm: "Run the light effect on every table now?",
     showAllDone: "Effect sent to {count} tables",
     showAllFailed: "Failed on tables: {tables}",
+    tuyaQuota: "Some bulbs did not respond because your Tuya account's device quota is full. Increase it at iot.tuya.com.",
     showAllSkipped: "No light group configured for tables: {tables}",
     stopAll: "Stop on all",
     stopAllDone: "Normal light restored on {count} tables",
