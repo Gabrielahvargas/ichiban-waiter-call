@@ -171,9 +171,20 @@ async function sendGroupCommands(
       tuyaRequest<boolean>("POST", `/v1.0/devices/${devId}/commands`, { commands }, token),
     ),
   );
-  const failed = results.filter((r) => r.status === "rejected" || !r.value.success);
+  const failed = results
+    .map((r, i) => {
+      if (r.status === "fulfilled" && r.value.success) return null;
+      const reason =
+        r.status === "rejected"
+          ? r.reason instanceof Error ? r.reason.message : "unknown"
+          : r.value.code === 60001001
+            ? "quota"
+            : `${r.value.code ?? ""} ${r.value.msg ?? "unknown"}`.trim();
+      return `${devIds[i]}=${reason}`;
+    })
+    .filter(Boolean);
   if (failed.length) {
-    throw new Error(`tuya_group_command_failed: ${failed.length}/${devIds.length} bulbs`);
+    throw new Error(`tuya_group_command_failed: ${failed.length}/${devIds.length} bulbs [${failed.join(", ")}]`);
   }
 }
 
