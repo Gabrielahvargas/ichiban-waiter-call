@@ -16,6 +16,8 @@ Ahora mismo la app no guarda **por qué** Tuya rechaza el segundo foco, así que
    - Si el foco está desconectado, te digo cuál es, para que lo revises en el restaurante.
    - Si Tuya rechaza la orden porque llegan muchas al mismo tiempo, la app mandará las órdenes de una en una, con un reintento.
 4. **Mejorar el aviso de la botonera.** Dirá "Mesa 500: 1 de 2 focos sin responder" y el motivo, no solo "falló".
+5. **Incluir solos los focos nuevos.** Cada vez que pulses "Encender todas" o "Apagar todas", la app le pedirá a Tuya la lista de focos de cada mesa en ese momento. Así, un foco que agregues al grupo de una mesa en Smart Life recibirá la orden sin que tengas que tocar nada en la app. Si creas una mesa o un grupo nuevo, la app lo buscará por su nombre en Tuya y lo guardará. Si no lo encuentra, la botonera te avisará qué mesa no tiene grupo. No voy a inventar ningún identificador.
+   - Para que esto funcione, el foco nuevo debe estar dentro del grupo de luces de su mesa en Smart Life.
 
 No cambio las luces SERVER, las llamadas, los botones físicos ni las automatizaciones de Smart Life. No publico nada.
 
