@@ -81,6 +81,17 @@ def test_parses_table700_attend_event():
     assert events[0]["click_type"] == "single_click"
 
 
+@pytest.mark.parametrize("button", [1, 2, 3, 4])
+def test_forwards_physical_button_without_global_remapping(button):
+    msg = table700_message(code=f"switch_type_{button}")
+    msg["bizData"]["devId"] = "ebee754a184a76afd3xsgm"
+    session = FakeSession()
+    assert process_message(msg, ENDPOINT, SECRET, session) == "ack"
+    body = json.loads(session.posts[0]["body"])
+    assert body["device_id"] == "ebee754a184a76afd3xsgm"
+    assert body["button"] == button
+
+
 def test_ignores_non_switch_properties():
     msg = table700_message()
     msg["bizData"]["properties"].append({"code": "battery_percentage", "value": 91, "time": 1})

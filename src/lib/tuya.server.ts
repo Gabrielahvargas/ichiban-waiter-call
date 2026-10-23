@@ -18,7 +18,7 @@ const REGION_BASE: Record<string, string> = {
 
 function baseUrl(): string {
   const region = (process.env["TUYA_REGION"] ?? "us").toLowerCase();
-  return REGION_BASE[region] ?? REGION_BASE["us"]!;
+  return REGION_BASE[region] ?? "https://openapi.tuyaus.com";
 }
 
 const sha256 = (s: string) => createHash("sha256").update(s).digest("hex");
@@ -55,6 +55,11 @@ async function tuyaRequest<T>(
     },
     ...(body ? { body: bodyStr } : {}),
   });
+  if (!res.ok) {
+    const errorBody = await res.text();
+    console.error(`Tuya request failed [${res.status}]: ${errorBody}`);
+    throw new Error(`tuya_http_failed [${res.status}]: ${errorBody}`);
+  }
   return (await res.json()) as { success: boolean; result?: T; msg?: string; code?: number };
 }
 
@@ -112,7 +117,9 @@ export async function findLightsByName(name: string): Promise<{ id: string; name
       if (LIGHT_CATEGORIES.has(d.category) && norm(shown) === wanted) found.push({ id: d.id, name: shown });
     }
     if (rows.length < 20) break;
-    lastId = rows[rows.length - 1]!.id;
+    const lastRow = rows[rows.length - 1];
+    if (!lastRow) break;
+    lastId = lastRow.id;
   }
   return found;
 }
@@ -131,7 +138,7 @@ export async function getDeviceFunctionCodes(deviceId: string): Promise<string[]
 async function sendCommands(deviceId: string, commands: { code: string; value: unknown }[]) {
   const token = await getToken();
   const res = await tuyaRequest<boolean>("POST", `/v1.0/devices/${deviceId}/commands`, { commands }, token);
-  if (!res.success) throw new Error(`tuya_command_failed: ${res.msg ?? "unknown"}`);
+  if (!res.success) throw new Error(`tuya_command_failed: ${res.code ?? "unknown"} ${res.msg ?? "unknown"}`);
 }
 
 /** Colour codes differ per product; pick the ones this bulb actually exposes. */
