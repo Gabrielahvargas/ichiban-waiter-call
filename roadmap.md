@@ -15,6 +15,8 @@
 - [x] Endpoint firmado para el gateway (`/api/public/tuya-events`), inactivo hasta configurar el secreto
 
 En progreso:
+- [ ] Revisar integración de llamadas; corregir mapeo real de mesa 200 sin alterar las mesas 3/4.
+- [ ] Probar pantalla, registros y ambos SERVER; confirmar aislamiento de errores quota.
 - [ ] Integración Tuya Message Service: botones 3/4 configurables por mesa, recepción de eventos segura, duplicados controlados,
       puente para Railway listo (auto-reconexión y procesamiento de mensajes pendientes). No publicar.
 
