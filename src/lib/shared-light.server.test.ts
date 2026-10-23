@@ -17,13 +17,13 @@ beforeEach(() => {
   mocks.setSharedLight.mockResolvedValue(undefined);
   mocks.from.mockImplementation((table: string) => {
     const chain: Record<string, any> = {};
-    chain.select = vi.fn(() => chain);
-    chain.eq = vi.fn((...args) => { mocks.filters(...args); return chain; });
-    chain.lte = vi.fn((...args) => { mocks.filters(...args); return Promise.resolve({ error: null }); });
-    chain.maybeSingle = vi.fn(async () => ({ data: { shared_light_device_ids: ids, shared_light_device_name: "SERVER" }, error: null }));
-    chain.insert = vi.fn(async () => ({ error: null }));
-    chain.update = vi.fn((data) => { mocks.update(table, data); return chain; });
-    chain.then = (resolve: (value: unknown) => unknown) => Promise.resolve({ count: pending, error: null }).then(resolve);
+    chain['select'] = vi.fn(() => chain);
+    chain['eq'] = vi.fn((...args) => { mocks.filters(...args); return chain; });
+    chain['lte'] = vi.fn((...args) => { mocks.filters(...args); return Promise.resolve({ error: null }); });
+    chain['maybeSingle'] = vi.fn(async () => ({ data: { shared_light_device_ids: ids, shared_light_device_name: "SERVER" }, error: null }));
+    chain['insert'] = vi.fn(async () => ({ error: null }));
+    chain['update'] = vi.fn((data) => { mocks.update(table, data); return chain; });
+    chain['then'] = (resolve: (value: unknown) => unknown) => Promise.resolve({ count: pending, error: null }).then(resolve);
     return chain;
   });
 });
