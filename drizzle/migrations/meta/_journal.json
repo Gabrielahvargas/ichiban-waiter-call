@@ -43,6 +43,13 @@
       "when": 1792113753592,
       "tag": "0005_show_runs",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792790804104,
+      "tag": "0006_attend_button_accepts_any_click_type",
+      "breakpoints": true
     }
   ]
 }
