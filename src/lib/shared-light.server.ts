@@ -40,11 +40,12 @@ type Settings = {
 
 async function readSettings(): Promise<Settings | null> {
   const db = await admin();
-  const { data } = await db
+  const { data, error } = await db
     .from("app_settings")
     .select("shared_light_device_id, shared_light_device_ids, shared_light_device_name")
     .eq("id", "global")
     .maybeSingle();
+  if (error) throw new Error(error.message);
   return data as Settings | null;
 }
 
@@ -89,6 +90,7 @@ export async function relinkSharedLightByName(reason: string): Promise<RelinkRes
 
 export async function syncSharedLight(reason: string): Promise<SharedLightSyncResult> {
   const db = await admin();
+  const dispatchCutoff = new Date().toISOString();
   let ids = storedIds(await readSettings());
 
   const { count, error: countError } = await db
@@ -114,10 +116,10 @@ export async function syncSharedLight(reason: string): Promise<SharedLightSyncRe
 
   const results = await Promise.allSettled(ids.map((id) => setSharedLight(id, state)));
   const devices = ids.map((id, i) => {
-    const r = results[i]!;
-    return r.status === "fulfilled"
+    const r = results[i];
+    return r?.status === "fulfilled"
       ? { id, ok: true }
-      : { id, ok: false, error: r.reason instanceof Error ? r.reason.message : "unknown_error" };
+      : { id, ok: false, error: r?.status === "rejected" && r.reason instanceof Error ? r.reason.message : "unknown_error" };
   });
 
   for (const d of devices) {
@@ -134,12 +136,18 @@ export async function syncSharedLight(reason: string): Promise<SharedLightSyncRe
     return { status: "error", state, pending, relinked, devices, detail: devices.map((d) => d.error).join("; ") };
   }
 
-  await db
-    .from("lighting_commands")
-    .update({ dispatch_status: "sent" } as never)
-    .eq("target", "waiter_area")
-    .eq("environment", "production")
-    .eq("dispatch_status", "pending_integration");
+  // A partial dispatch is not "sent": keep it pending for the next sync.
+  // Never acknowledge commands created by a newer concurrent call.
+  if (okCount === devices.length) {
+    const { error } = await db
+      .from("lighting_commands")
+      .update({ dispatch_status: "sent" } as never)
+      .eq("target", "waiter_area")
+      .eq("environment", "production")
+      .eq("dispatch_status", "pending_integration")
+      .lte("created_at", dispatchCutoff);
+    if (error) return { status: "error", state, pending, relinked, devices, detail: error.message };
+  }
 
   return { status: okCount === devices.length ? "applied" : "partial", state, pending, relinked, devices };
 }
