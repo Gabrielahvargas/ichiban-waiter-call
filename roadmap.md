@@ -15,10 +15,10 @@
 - [x] Endpoint firmado para el gateway (`/api/public/tuya-events`), inactivo hasta configurar el secreto
 
 En progreso:
-- [ ] Revisar integración de llamadas; corregir mapeo real de mesa 200 sin alterar las mesas 3/4.
-- [ ] Probar pantalla, registros y ambos SERVER; confirmar aislamiento de errores quota.
-- [ ] Integración Tuya Message Service: botones 3/4 configurables por mesa, recepción de eventos segura, duplicados controlados,
-      puente para Railway listo (auto-reconexión y procesamiento de mensajes pendientes). No publicar.
+- [x] Revisar integración de llamadas; mesa 200 configurada 1/2 y otras mesas conservadas 3/4.
+- [x] Probar llamadas reales controladas de 200 y 500: pantalla pendiente/atendida, historial, duplicados y envío independiente a ambos SERVER; 26 pruebas automáticas aprobadas.
+- [ ] Confirmar encendido físico de ambos SERVER: Tuya rechaza las órdenes con 2001 device is offline; requiere reconectar los dispositivos/gateway y nueva pulsación física.
+- [x] Integración Tuya Message Service: recepción física confirmada en producción; puente Railway con 23 pruebas aprobadas. Sin publicar cambios de código.
 
 Hecho:
 - [x] Botones físicos configurables por mesa (llamar/atender entre 1-4) en Configuración, con validación y resolución del mapeo en el servidor
