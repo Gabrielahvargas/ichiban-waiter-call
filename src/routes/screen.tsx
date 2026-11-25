@@ -218,7 +218,7 @@ function PairingView({ onPaired }: { onPaired: (s: DeviceSession) => void }) {
   }, [focus, press]);
 
   return (
-    <div className="relative flex h-dvh flex-col items-center justify-center overflow-hidden bg-background px-6 py-4">
+    <div className="relative flex h-dvh flex-col items-center justify-center overflow-y-auto bg-background px-6 py-4">
       <div className="absolute right-4 top-4">
         <LanguageSwitcher />
       </div>
@@ -826,7 +826,7 @@ function Overlay({
   // D-pad: arrows move focus inside the overlay, OK activates, Back returns to the previous screen.
   useSpatialNav(ref, { onBack: onClose, initial: "[data-nav-initial]" });
   return (
-    <div ref={ref} className="tv-nav fixed inset-0 z-50 flex h-dvh flex-col items-center justify-center overflow-hidden bg-background/95 p-[2vh]">
+    <div ref={ref} className="tv-nav fixed inset-0 z-50 flex h-dvh flex-col items-center justify-center overflow-y-auto bg-background/95 p-[2vh]">
       <h2 className="font-display text-[clamp(1.25rem,5vh,2.25rem)] font-bold uppercase leading-tight tracking-wide">{title}</h2>
       <p className="mb-[1.5vh] mt-[0.5vh] text-[clamp(0.7rem,2vh,0.875rem)] text-muted-foreground">{hint}</p>
       {children}
