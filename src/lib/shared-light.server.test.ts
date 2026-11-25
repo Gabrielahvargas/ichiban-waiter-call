@@ -50,3 +50,30 @@ describe("SERVER dispatch independent from table effects", () => {
     expect(mocks.update).not.toHaveBeenCalled();
   });
 });
+import { serverLightsAlreadyIn } from "./shared-light.server";
+describe("serverLightsAlreadyIn", () => {
+  const now = Date.parse("2026-11-25T18:00:00Z");
+  const at = (m: number) => new Date(now - m * 60000).toISOString();
+  it("needs white when last SERVER command was red (stuck red)", () => {
+    const logs = [
+      { device_id: "a", result: "shared_light_red", created_at: at(5) },
+      { device_id: "b", result: "shared_light_red", created_at: at(5) },
+    ];
+    expect(serverLightsAlreadyIn("white", ["a", "b"], logs, now, 3600000)).toBe(false);
+  });
+  it("skips when both bulbs already white", () => {
+    const logs = [
+      { device_id: "a", result: "shared_light_white", created_at: at(2) },
+      { device_id: "b", result: "shared_light_white", created_at: at(2) },
+    ];
+    expect(serverLightsAlreadyIn("white", ["a", "b"], logs, now, 3600000)).toBe(true);
+  });
+  it("resends when one bulb failed last time", () => {
+    const logs = [
+      { device_id: "a", result: "shared_light_white", created_at: at(2) },
+      { device_id: "b", result: "light_command_failed", created_at: at(1) },
+      { device_id: "b", result: "shared_light_white", created_at: at(3) },
+    ];
+    expect(serverLightsAlreadyIn("white", ["a", "b"], logs, now, 3600000)).toBe(false);
+  });
+});

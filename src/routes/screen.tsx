@@ -19,6 +19,7 @@ import { TABLE_NUMBERS, type Call, type ScreenOrientation, type Shift } from "@/
 import { cn } from "@/lib/utils";
 import { useSpatialNav } from "@/lib/spatial-nav";
 import { getScreenSoundUrl } from "@/modules/screens/sound.functions";
+import { reconcileScreenServerLight } from "@/modules/screens/light.functions";
 
 /** True when the value is a time zone the runtime can format (IANA name or "UTC"). */
 function isValidTimeZone(tz?: string | null): boolean {
@@ -371,6 +372,23 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
   useSpatialNav(rootRef, { enabled: mode === "display", initial: "[data-nav-initial]" });
 
   const pendingCount = visible.filter((c) => c.status === "pending").length;
+
+  // SERVER bulbs: reconcile with the real active calls on load, whenever the
+  // pending set changes (new call / attended) and as a periodic safety net.
+  // The server skips sending when the bulbs already match.
+  const pendingKey = (state?.calls ?? []).filter((c) => c.status === "pending").map((c) => c.id).sort().join(",");
+  useEffect(() => {
+    if (!state) return;
+    const run = () =>
+      reconcileScreenServerLight({ data: { screenId: session.screenId, token: session.token } }).catch(() => undefined);
+    const first = setTimeout(run, 1500);
+    const id = setInterval(run, 2 * 60 * 1000);
+    return () => {
+      clearTimeout(first);
+      clearInterval(id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingKey, state === null, session.screenId, session.token]);
 
   const [orientationOverride, setOrientationOverride] = useState<ScreenOrientation | null>(null);
   const orientation: ScreenOrientation = orientationOverride ?? state?.screen.orientation ?? "landscape";

@@ -151,3 +151,58 @@ export async function syncSharedLight(reason: string): Promise<SharedLightSyncRe
 
   return { status: okCount === devices.length ? "applied" : "partial", state, pending, relinked, devices };
 }
+
+type LastLog = { device_id: string | null; result: string | null; created_at: string };
+
+/**
+ * Pure decision: does every SERVER bulb already show `state` according to its
+ * most recent logged command within `maxAgeMs`? If so no command is needed.
+ */
+export function serverLightsAlreadyIn(
+  state: "red" | "white",
+  ids: string[],
+  logs: LastLog[],
+  nowMs: number,
+  maxAgeMs: number,
+): boolean {
+  if (ids.length === 0) return false;
+  return ids.every((id) => {
+    const last = logs
+      .filter((l) => l.device_id === id && (l.result?.startsWith("shared_light_") || l.result === "light_command_failed"))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
+    if (!last || last.result !== `shared_light_${state}`) return false;
+    return nowMs - new Date(last.created_at).getTime() <= maxAgeMs;
+  });
+}
+
+/**
+ * Safe reconciliation: reads active production calls first and only sends the
+ * SERVER command when the bulbs are not already known to be in that state,
+ * so repeated checks (screen load, realtime updates, attends) don't spend quota.
+ */
+export async function reconcileSharedLight(reason: string): Promise<SharedLightSyncResult> {
+  const db = await admin();
+  const { count, error } = await db
+    .from("calls")
+    .select("id", { count: "exact", head: true })
+    .eq("environment", "production")
+    .eq("status", "pending");
+  if (error) return { status: "error", detail: error.message };
+  const pending = count ?? 0;
+  const state: "red" | "white" = pending > 0 ? "red" : "white";
+  const ids = storedIds(await readSettings());
+  if (ids.length) {
+    const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+    const { data: logs } = await db
+      .from("tuya_event_log")
+      .select("device_id, result, created_at:received_at")
+      .in("device_id", ids)
+      .gte("received_at", since)
+      .order("received_at", { ascending: false })
+      .limit(50);
+    if (serverLightsAlreadyIn(state, ids, (logs ?? []) as LastLog[], Date.now(), 6 * 60 * 60 * 1000)) {
+      return { status: "skipped", state, pending, detail: "already_in_state" };
+    }
+  }
+  return syncSharedLight(reason);
+}
