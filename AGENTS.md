@@ -15,3 +15,4 @@
 - Physical button mapping is resolved by the existing per-table database configuration, never by a global bridge renumbering. Why: different physical button layouts must coexist without changing other tables.
 - Call ingestion commits before best-effort SERVER dispatch; table SHOW commands remain separate. Mark shared dispatch sent only after every SERVER succeeds, scoped to commands existing at sync start. Why: light quota failures must not lose calls or falsely acknowledge partial dispatches.
 - Smart Life local hub scenes (lights reacting offline) are configured and verified separately in Smart Life, never created from this app. Why: Lovable has no reliable official way to author local Zigbee scenes, so the app only handles cloud call/attend logic.
+- AI features call Lovable AI Gateway only from `src/lib/ai/*.server.ts`, behind admin-checked server functions. Why: keeps the key server-side and limits cost to admins.

@@ -24,7 +24,7 @@ export const Route = createFileRoute("/tv-help")({
 function TvHelpPage() {
   const { t, language } = useI18n();
   const run = useServerFn(getTvHelp);
-  const [tvModel, setTvModel] = useState("TCL 31\" Android TV");
+  const [tvModel, setTvModel] = useState("TCL 32Q21K (32\" Q21K, 2025, 720p, Google TV)");
   const [browser, setBrowser] = useState("");
   const [problem, setProblem] = useState("");
   const [busy, setBusy] = useState(false);
