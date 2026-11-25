@@ -160,3 +160,6 @@
     outline-offset: 3px;
   }
 }
+
+/* While a TV remote is in use, hide the mouse pointer (restored on mouse/touch). */
+html.tv-dpad, html.tv-dpad * { cursor: none !important; }

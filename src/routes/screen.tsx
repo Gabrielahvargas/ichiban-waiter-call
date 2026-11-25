@@ -582,9 +582,9 @@ function PinOverlay({
 
   return (
     <Overlay title={t("screen.pinTitle")} hint={t("screen.pinHint")} onClose={onCancel}>
-      <p className="mb-4 font-display text-5xl tracking-[0.4em]">{"•".repeat(pin.length) || "—"}</p>
-      {error && <p className="mb-4 max-w-md text-center text-destructive">{error}</p>}
-      <div className="grid grid-cols-3 gap-3">
+      <p className="mb-[1vh] font-display text-[clamp(1.5rem,6vh,3rem)] leading-none tracking-[0.4em]">{"•".repeat(pin.length) || "—"}</p>
+      {error && <p className="mb-[1vh] max-w-md text-center text-destructive">{error}</p>}
+      <div className="grid grid-cols-3 gap-[1.2vh]">
         {KEYPAD.map((key, i) => (
           <button
             key={key}
@@ -593,7 +593,7 @@ function PinOverlay({
             data-nav-initial={i === 0 ? true : undefined}
             onClick={() => press(key)}
             className={cn(
-              "rounded-xl border border-border bg-card px-8 py-5 font-display text-3xl font-bold",
+              "flex h-[9.5vh] min-h-9 w-[clamp(4rem,16vh,8rem)] items-center justify-center rounded-xl border border-border bg-card font-display text-[clamp(1.1rem,4.5vh,1.875rem)] font-bold",
             )}
           >
             {key}
@@ -635,20 +635,20 @@ function MenuOverlay({
 
   return (
     <Overlay title={t("screen.menu")} hint={t("screen.remoteHint")} onClose={onClose}>
-      <div className="flex w-full max-w-md flex-col gap-3">
+      <div className="flex w-full max-w-md flex-col gap-[1.5vh]">
         {items.map((item, i) => (
           <button
             key={item.key}
             type="button"
             data-nav-initial={i === 0 ? true : undefined}
             onClick={item.run}
-            className="rounded-xl border border-border bg-card px-6 py-5 text-left font-display text-2xl font-bold uppercase"
+            className="rounded-xl border border-border bg-card px-6 py-[2vh] text-left font-display text-[clamp(1rem,4vh,1.5rem)] font-bold uppercase"
           >
             {item.label}
           </button>
         ))}
       </div>
-      <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-1 text-sm text-muted-foreground">
+      <dl className="mt-[2vh] grid grid-cols-2 gap-x-8 gap-y-1 text-sm text-muted-foreground">
         <dt>{t("screen.tablesShown")}</dt>
         <dd className="tabular">{tables ? tables.join(", ") : TABLE_NUMBERS.join(", ")}</dd>
       </dl>
@@ -826,14 +826,14 @@ function Overlay({
   // D-pad: arrows move focus inside the overlay, OK activates, Back returns to the previous screen.
   useSpatialNav(ref, { onBack: onClose, initial: "[data-nav-initial]" });
   return (
-    <div ref={ref} className="tv-nav fixed inset-0 z-50 flex flex-col items-center justify-center overflow-auto bg-background/95 p-6">
-      <h2 className="font-display text-3xl font-bold uppercase tracking-wide md:text-4xl">{title}</h2>
-      <p className="mb-6 mt-2 text-sm text-muted-foreground">{hint}</p>
+    <div ref={ref} className="tv-nav fixed inset-0 z-50 flex h-dvh flex-col items-center justify-center overflow-hidden bg-background/95 p-[2vh]">
+      <h2 className="font-display text-[clamp(1.25rem,5vh,2.25rem)] font-bold uppercase leading-tight tracking-wide">{title}</h2>
+      <p className="mb-[1.5vh] mt-[0.5vh] text-[clamp(0.7rem,2vh,0.875rem)] text-muted-foreground">{hint}</p>
       {children}
       <button
         type="button"
         onClick={onClose}
-        className="mt-8 rounded-md border border-border px-5 py-3 font-semibold"
+        className="mt-[2vh] rounded-md border border-border px-5 py-[1vh] font-semibold"
       >
         {t("common.back")}
       </button>

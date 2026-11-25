@@ -70,6 +70,7 @@ export function useSpatialNav(
         return;
       }
       const key = navKey(e);
+      if (key.startsWith("Arrow") || key === "Enter") document.documentElement.classList.add("tv-dpad");
       const active = document.activeElement as HTMLElement | null;
       const inside = !!active && r.contains(active);
       if (key.startsWith("Arrow")) {
@@ -94,7 +95,25 @@ export function useSpatialNav(
         active!.click();
       }
     }
+    // Swallow the matching keyup/keypress so the TV WebView never acts on arrows itself.
+    function onOther(e: KeyboardEvent) {
+      const k = navKey(e);
+      if (k.startsWith("Arrow") || k === "Enter") { e.preventDefault(); e.stopPropagation(); }
+    }
+    // Hide the pointer while navigating with the remote; any real mouse move shows it again.
+    const showPointer = () => document.documentElement.classList.remove("tv-dpad");
     window.addEventListener("keydown", onKey, true);
-    return () => { clearTimeout(t); window.removeEventListener("keydown", onKey, true); };
+    window.addEventListener("keyup", onOther, true);
+    window.addEventListener("keypress", onOther, true);
+    window.addEventListener("mousemove", showPointer, true);
+    window.addEventListener("touchstart", showPointer, true);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("keyup", onOther, true);
+      window.removeEventListener("keypress", onOther, true);
+      window.removeEventListener("mousemove", showPointer, true);
+      window.removeEventListener("touchstart", showPointer, true);
+    };
   }, [ref, enabled, onBack, initial]);
 }
