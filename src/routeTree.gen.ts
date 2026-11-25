@@ -21,6 +21,7 @@ import { Route as ScreenRouteImport } from './routes/screen'
 import { Route as ScreensRouteImport } from './routes/screens'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as StatsRouteImport } from './routes/stats'
+import { Route as TvHelpRouteImport } from './routes/tv-help'
 import { Route as WaitersRouteImport } from './routes/waiters'
 import { Route as ApiPublicSalesSyncRouteImport } from './routes/api/public/sales-sync'
 import { Route as ApiPublicTuyaEventsRouteImport } from './routes/api/public/tuya-events'
@@ -85,6 +86,11 @@ const StatsRoute = StatsRouteImport.update({
   path: '/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TvHelpRoute = TvHelpRouteImport.update({
+  id: '/tv-help',
+  path: '/tv-help',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WaitersRoute = WaitersRouteImport.update({
   id: '/waiters',
   path: '/waiters',
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/tv-help': typeof TvHelpRoute
   '/waiters': typeof WaitersRoute
   '/api/public/sales-sync': typeof ApiPublicSalesSyncRoute
   '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
@@ -131,6 +138,7 @@ export interface FileRoutesByTo {
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/tv-help': typeof TvHelpRoute
   '/waiters': typeof WaitersRoute
   '/api/public/sales-sync': typeof ApiPublicSalesSyncRoute
   '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/screens': typeof ScreensRoute
   '/settings': typeof SettingsRoute
   '/stats': typeof StatsRoute
+  '/tv-help': typeof TvHelpRoute
   '/waiters': typeof WaitersRoute
   '/api/public/sales-sync': typeof ApiPublicSalesSyncRoute
   '/api/public/tuya-events': typeof ApiPublicTuyaEventsRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/screens'
     | '/settings'
     | '/stats'
+    | '/tv-help'
     | '/waiters'
     | '/api/public/sales-sync'
     | '/api/public/tuya-events'
@@ -185,6 +195,7 @@ export interface FileRouteTypes {
     | '/screens'
     | '/settings'
     | '/stats'
+    | '/tv-help'
     | '/waiters'
     | '/api/public/sales-sync'
     | '/api/public/tuya-events'
@@ -202,6 +213,7 @@ export interface FileRouteTypes {
     | '/screens'
     | '/settings'
     | '/stats'
+    | '/tv-help'
     | '/waiters'
     | '/api/public/sales-sync'
     | '/api/public/tuya-events'
@@ -220,6 +232,7 @@ export interface RootRouteChildren {
   ScreensRoute: typeof ScreensRoute
   SettingsRoute: typeof SettingsRoute
   StatsRoute: typeof StatsRoute
+  TvHelpRoute: typeof TvHelpRoute
   WaitersRoute: typeof WaitersRoute
   ApiPublicSalesSyncRoute: typeof ApiPublicSalesSyncRoute
   ApiPublicTuyaEventsRoute: typeof ApiPublicTuyaEventsRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StatsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tv-help': {
+      id: '/tv-help'
+      path: '/tv-help'
+      fullPath: '/tv-help'
+      preLoaderRoute: typeof TvHelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/waiters': {
       id: '/waiters'
       path: '/waiters'
@@ -348,6 +368,7 @@ const rootRouteChildren: RootRouteChildren = {
   ScreensRoute: ScreensRoute,
   SettingsRoute: SettingsRoute,
   StatsRoute: StatsRoute,
+  TvHelpRoute: TvHelpRoute,
   WaitersRoute: WaitersRoute,
   ApiPublicSalesSyncRoute: ApiPublicSalesSyncRoute,
   ApiPublicTuyaEventsRoute: ApiPublicTuyaEventsRoute,

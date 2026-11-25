@@ -10,6 +10,7 @@ import {
   Settings,
   ShieldCheck,
   PlugZap,
+  Tv,
   Trophy,
 } from "lucide-react";
 import { useEffect, useRef, type ReactNode } from "react";
@@ -45,6 +46,7 @@ const NAV = [
   { to: "/settings", key: "nav.settings", icon: Settings },
   { to: "/admins", key: "nav.admins", icon: ShieldCheck },
   { to: "/integration", key: "nav.integration", icon: PlugZap },
+  { to: "/tv-help", key: "nav.tvHelp", icon: Tv },
 ] as const;
 
 /** Applies the signed-in user's saved language and keeps it in sync. */
