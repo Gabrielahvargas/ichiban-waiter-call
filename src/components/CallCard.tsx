@@ -23,7 +23,7 @@ export function CallCard({ call, now, density }: CallCardProps) {
      label, number, timer, waiter name and helper — always fits on a 720p TV. */
   const numberSize =
     density === "single"
-      ? "text-[clamp(6rem,min(26vw,28vh),22rem)]"
+      ? "text-[clamp(4rem,min(26vw,24vh),22rem)]"
       : density === "split"
         ? "text-[clamp(4.5rem,min(16vw,20vh),15rem)]"
         : density === "compact"
@@ -32,7 +32,7 @@ export function CallCard({ call, now, density }: CallCardProps) {
 
   const timerSize =
     density === "single"
-      ? "text-[clamp(3rem,min(12vw,14vh),10rem)]"
+      ? "text-[clamp(2rem,min(12vw,12vh),10rem)]"
       : density === "split"
         ? "text-[clamp(2rem,min(7vw,10vh),6.5rem)]"
         : density === "compact"
@@ -55,7 +55,7 @@ export function CallCard({ call, now, density }: CallCardProps) {
     >
       <span
         className={cn(
-          "font-display font-semibold uppercase tracking-[0.3em] text-call-helper",
+          "shrink-0 font-display font-semibold uppercase tracking-[0.3em] text-call-helper",
           density === "grid" || density === "compact" ? "text-xs" : "text-base md:text-xl",
         )}
       >
@@ -71,14 +71,14 @@ export function CallCard({ call, now, density }: CallCardProps) {
         {call.table_number}
       </span>
 
-      <span className={cn("font-display font-bold leading-none text-call-timer tabular", timerSize)}>
+      <span className={cn("shrink-0 font-display font-bold leading-none text-call-timer tabular", timerSize)}>
         {formatElapsed(elapsedSeconds)}
       </span>
 
       {call.assigned_waiter_name && call.assigned_waiter_name.trim().length > 0 && (
         <span
           className={cn(
-            "w-full max-w-full truncate font-semibold text-call-helper",
+            "w-full max-w-full shrink-0 truncate font-semibold text-call-helper",
             density === "single" || density === "split" ? "mt-2 text-xl md:text-3xl" : "mt-1 text-sm md:text-base",
           )}
           title={call.assigned_waiter_name}
@@ -87,7 +87,7 @@ export function CallCard({ call, now, density }: CallCardProps) {
         </span>
       )}
 
-      <span className={cn("font-medium text-call-helper/90", density === "compact" ? "mt-1" : "mt-2", helperSize)}>
+      <span className={cn("shrink-0 font-medium text-call-helper/90", density === "compact" ? "mt-1" : "mt-2", helperSize)}>
         {attended ? t("live.helperAttended") : t("live.helperWaiting")}
       </span>
     </article>
