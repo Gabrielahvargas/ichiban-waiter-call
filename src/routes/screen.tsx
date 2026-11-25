@@ -17,6 +17,7 @@ import {
 import { defaultShift, todayIso } from "@/modules/waiters/api";
 import { TABLE_NUMBERS, type Call, type ScreenOrientation, type Shift } from "@/modules/shared/types";
 import { cn } from "@/lib/utils";
+import { useSpatialNav } from "@/lib/spatial-nav";
 
 /** True when the value is a time zone the runtime can format (IANA name or "UTC"). */
 function isValidTimeZone(tz?: string | null): boolean {
@@ -49,9 +50,6 @@ export const Route = createFileRoute("/screen")({
 /** Remote keys: standard browser keys plus Tizen (10009) and webOS (461) back. */
 function isBack(e: KeyboardEvent) {
   return e.key === "Escape" || e.key === "Backspace" || e.keyCode === 10009 || e.keyCode === 461;
-}
-function isOk(e: KeyboardEvent) {
-  return e.key === "Enter" || e.key === " ";
 }
 
 /**
@@ -353,19 +351,9 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, soundMode, now, threshold]);
 
-  // Remote: OK opens the menu from the call display; timers keep running because
-  // elapsed time is derived from the server timestamps, never from local state.
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (mode !== "display") return;
-      if (isOk(e)) {
-        e.preventDefault();
-        setMode(pinSession ? "menu" : "pin");
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [mode, pinSession]);
+  const rootRef = useRef<HTMLDivElement>(null);
+  // Remote: arrows move focus between header controls, OK activates (Menu is focused first).
+  useSpatialNav(rootRef, { enabled: mode === "display", initial: "[data-nav-initial]" });
 
   const pendingCount = visible.filter((c) => c.status === "pending").length;
 
@@ -410,6 +398,7 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
 
   return (
     <div
+      ref={rootRef}
       className={cn(
         "flex flex-col overflow-hidden bg-background p-3",
         rotate ? "fixed left-0 top-0" : "h-dvh min-h-0",
@@ -429,6 +418,7 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
           <LanguageSwitcher />
           <button
             type="button"
+            data-nav-initial
             onClick={() => setMode(pinSession ? "menu" : "pin")}
             className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold"
           >
@@ -520,7 +510,6 @@ function PinOverlay({
 }) {
   const { t } = useI18n();
   const [pin, setPin] = useState("");
-  const [focus, setFocus] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -561,33 +550,20 @@ function PinOverlay({
     [pin, submit],
   );
 
+  // Number keys on the remote type digits directly; Backspace deletes one.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (isBack(e)) {
-        e.preventDefault();
-        onCancel();
-        return;
-      }
       if (/^[0-9]$/.test(e.key)) {
+        e.preventDefault();
         setPin((p) => (p.length < 8 ? p + e.key : p));
-        return;
-      }
-      if (isOk(e)) {
+      } else if (e.key === "Backspace") {
         e.preventDefault();
-        const key = KEYPAD[focus];
-        if (key) press(key);
-        return;
-      }
-      const moves: Record<string, number> = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 3, ArrowUp: -3 };
-      const delta = moves[e.key];
-      if (delta) {
-        e.preventDefault();
-        setFocus((f) => Math.min(KEYPAD.length - 1, Math.max(0, f + delta)));
+        setPin((p) => p.slice(0, -1));
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [focus, onCancel, press]);
+  }, []);
 
   return (
     <Overlay title={t("screen.pinTitle")} hint={t("screen.pinHint")} onClose={onCancel}>
@@ -599,13 +575,10 @@ function PinOverlay({
             key={key}
             type="button"
             disabled={busy}
-            onClick={() => {
-              setFocus(i);
-              press(key);
-            }}
+            data-nav-initial={i === 0 ? true : undefined}
+            onClick={() => press(key)}
             className={cn(
               "rounded-xl border border-border bg-card px-8 py-5 font-display text-3xl font-bold",
-              focus === i && "border-primary bg-accent",
             )}
           >
             {key}
@@ -644,25 +617,6 @@ function MenuOverlay({
     ],
     [t, onAssign, onClose, orientation, onToggleOrientation],
   );
-  const [focus, setFocus] = useState(0);
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (isBack(e)) {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      if (e.key === "ArrowDown") setFocus((f) => Math.min(items.length - 1, f + 1));
-      if (e.key === "ArrowUp") setFocus((f) => Math.max(0, f - 1));
-      if (isOk(e)) {
-        e.preventDefault();
-        items[focus]?.run();
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [focus, items, onClose]);
 
   return (
     <Overlay title={t("screen.menu")} hint={t("screen.remoteHint")} onClose={onClose}>
@@ -671,11 +625,9 @@ function MenuOverlay({
           <button
             key={item.key}
             type="button"
+            data-nav-initial={i === 0 ? true : undefined}
             onClick={item.run}
-            className={cn(
-              "rounded-xl border border-border bg-card px-6 py-5 text-left font-display text-2xl font-bold uppercase",
-              focus === i && "border-primary bg-accent",
-            )}
+            className="rounded-xl border border-border bg-card px-6 py-5 text-left font-display text-2xl font-bold uppercase"
           >
             {item.label}
           </button>
@@ -717,8 +669,6 @@ function AssignOverlay({
   const [shift, setShift] = useState<Shift>(defaultShift());
   const [board, setBoard] = useState<Board | null>(null);
   const [selectedWaiter, setSelectedWaiter] = useState<string | null>(null);
-  const [column, setColumn] = useState<"waiters" | "tables">("waiters");
-  const [focus, setFocus] = useState(0);
 
   const load = useCallback(async () => {
     const data = await callRpc<Board>("screen_assignment_board", {
@@ -764,38 +714,6 @@ function AssignOverlay({
     [selectedWaiter, byTable, session, pinSession, serviceDate, shift, onExpired, load],
   );
 
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (isBack(e)) {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-      const list = column === "waiters" ? waiters.length : TABLE_NUMBERS.length;
-      if (e.key === "ArrowDown") setFocus((f) => Math.min(list - 1, f + 1));
-      if (e.key === "ArrowUp") setFocus((f) => Math.max(0, f - 1));
-      if (e.key === "ArrowRight" && column === "waiters") {
-        setColumn("tables");
-        setFocus(0);
-      }
-      if (e.key === "ArrowLeft" && column === "tables") {
-        setColumn("waiters");
-        setFocus(0);
-      }
-      if (isOk(e)) {
-        e.preventDefault();
-        if (column === "waiters") {
-          const w = waiters[focus];
-          if (w) setSelectedWaiter((prev) => (prev === w.id ? null : w.id));
-        } else {
-          const num = TABLE_NUMBERS[focus];
-          if (num !== undefined) void toggleTable(num);
-        }
-      }
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [column, focus, waiters, onClose, toggleTable]);
 
   const nameOf = (id: string | null) => waiters.find((w) => w.id === id)?.full_name ?? t("waiters.unassigned");
 
@@ -832,11 +750,11 @@ function AssignOverlay({
             <button
               key={w.id}
               type="button"
+              data-nav-initial={i === 0 ? true : undefined}
               onClick={() => setSelectedWaiter(selectedWaiter === w.id ? null : w.id)}
               className={cn(
                 "w-full rounded-lg border border-border bg-card px-4 py-3 text-left text-lg font-semibold",
                 selectedWaiter === w.id && "border-primary bg-primary/20",
-                column === "waiters" && focus === i && "ring-2 ring-primary",
               )}
             >
               {w.full_name}
@@ -848,7 +766,7 @@ function AssignOverlay({
         <div>
           <p className="mb-2 text-sm text-muted-foreground">{t("waiters.selectTables")}</p>
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-            {TABLE_NUMBERS.map((num, i) => {
+            {TABLE_NUMBERS.map((num) => {
               const owner = byTable.get(num) ?? null;
               const mine = owner !== null && owner === selectedWaiter;
               return (
@@ -859,7 +777,6 @@ function AssignOverlay({
                   className={cn(
                     "rounded-xl border p-3 text-left",
                     mine ? "border-primary bg-primary/20" : "border-border bg-card",
-                    column === "tables" && focus === i && "ring-2 ring-primary",
                   )}
                 >
                   <span className="block font-display text-2xl font-bold tabular">{num}</span>
@@ -890,8 +807,11 @@ function Overlay({
   children: React.ReactNode;
 }) {
   const { t } = useI18n();
+  const ref = useRef<HTMLDivElement>(null);
+  // D-pad: arrows move focus inside the overlay, OK activates, Back returns to the previous screen.
+  useSpatialNav(ref, { onBack: onClose, initial: "[data-nav-initial]" });
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center overflow-auto bg-background/95 p-6">
+    <div ref={ref} className="tv-nav fixed inset-0 z-50 flex flex-col items-center justify-center overflow-auto bg-background/95 p-6">
       <h2 className="font-display text-3xl font-bold uppercase tracking-wide md:text-4xl">{title}</h2>
       <p className="mb-6 mt-2 text-sm text-muted-foreground">{hint}</p>
       {children}

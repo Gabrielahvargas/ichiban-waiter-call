@@ -149,3 +149,14 @@
     font-family: var(--font-sans);
   }
 }
+
+/* Visible D-pad / keyboard focus for TV remotes (screen page). */
+@layer base {
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 4px solid var(--color-primary, currentColor);
+    outline-offset: 3px;
+  }
+}
