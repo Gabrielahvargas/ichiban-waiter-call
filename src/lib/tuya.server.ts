@@ -248,3 +248,16 @@ export async function setSharedLight(deviceId: string, state: SharedLightState):
   if (commands.length === 0) throw new Error("tuya_no_supported_light_codes");
   await sendCommands(deviceId, commands);
 }
+
+/** Read-only: what the SERVER bulb is really showing now, from its reported status. */
+export async function getSharedLightActual(deviceId: string): Promise<SharedLightState | "off" | "unknown"> {
+  const token = await getToken();
+  const res = await tuyaRequest<{ code: string; value: unknown }[]>("GET", `/v1.0/devices/${deviceId}/status`, null, token);
+  if (!res.success || !Array.isArray(res.result)) return "unknown";
+  const v = (c: string) => res.result!.find((s) => s.code === c)?.value;
+  if (v("switch_led") === false) return "off";
+  const mode = v("work_mode");
+  if (mode === "white") return "white";
+  if (mode === "colour") return "red";
+  return "unknown";
+}

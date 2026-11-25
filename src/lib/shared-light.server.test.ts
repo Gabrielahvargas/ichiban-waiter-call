@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({
+const mocks = vi.hoisted(() => ({ getSharedLightActual: vi.fn(),
   setSharedLight: vi.fn(), findLightsByName: vi.fn(), getDevice: vi.fn(),
   from: vi.fn(), update: vi.fn(), filters: vi.fn(),
 }));

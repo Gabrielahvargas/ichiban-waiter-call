@@ -5,7 +5,7 @@
  * SERVER) receives the same command. If a stored bulb no longer responds, the
  * list is refreshed by name.
  */
-import { findLightsByName, getDevice, setSharedLight } from "./tuya.server";
+import { findLightsByName, getDevice, getSharedLightActual, setSharedLight } from "./tuya.server";
 
 export interface SharedLightSyncResult {
   status: "applied" | "partial" | "skipped" | "error";
@@ -192,6 +192,13 @@ export async function reconcileSharedLight(reason: string): Promise<SharedLightS
   const state: "red" | "white" = pending > 0 ? "red" : "white";
   const ids = storedIds(await readSettings());
   if (ids.length) {
+    // Prefer what the bulbs really report (read-only) over our own command log:
+    // a bulb can show red even after a logged "white".
+    const actual = await Promise.all(ids.map((id) => getSharedLightActual(id).catch(() => "unknown" as const)));
+    if (actual.every((a) => a === state)) {
+      return { status: "skipped", state, pending, detail: "already_in_state" };
+    }
+    if (actual.some((a) => a !== "unknown")) return syncSharedLight(reason);
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
     const { data: logs } = await db
       .from("tuya_event_log")
