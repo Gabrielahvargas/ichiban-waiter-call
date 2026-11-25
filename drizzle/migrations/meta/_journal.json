@@ -50,6 +50,13 @@
       "when": 1792790804104,
       "tag": "0006_attend_button_accepts_any_click_type",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795628854025,
+      "tag": "0007_migration",
+      "breakpoints": true
     }
   ]
 }

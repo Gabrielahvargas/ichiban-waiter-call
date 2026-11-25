@@ -18,6 +18,7 @@ import { defaultShift, todayIso } from "@/modules/waiters/api";
 import { TABLE_NUMBERS, type Call, type ScreenOrientation, type Shift } from "@/modules/shared/types";
 import { cn } from "@/lib/utils";
 import { useSpatialNav } from "@/lib/spatial-nav";
+import { getScreenSoundUrl } from "@/modules/screens/sound.functions";
 
 /** True when the value is a time zone the runtime can format (IANA name or "UTC"). */
 function isValidTimeZone(tz?: string | null): boolean {
@@ -329,10 +330,24 @@ function DisplayView({ session, onUnpaired }: { session: DeviceSession; onUnpair
   const seen = useRef<Set<string>>(new Set());
   const alerted = useRef<Set<string>>(new Set());
   const threshold = state?.settings.wait_threshold_seconds ?? 300;
+  // Custom sound: fetch a short-lived signed link (the sound storage is private).
+  const customSoundPath = state?.settings.custom_sound_url ?? null;
+  const [customSoundLink, setCustomSoundLink] = useState<string | null>(null);
+  useEffect(() => {
+    setCustomSoundLink(null);
+    if (!customSoundPath) return;
+    const load = () =>
+      getScreenSoundUrl({ data: { screenId: session.screenId, token: session.token } })
+        .then((r) => setCustomSoundLink(r.url))
+        .catch(() => undefined);
+    void load();
+    const id = setInterval(load, 50 * 60 * 1000);
+    return () => clearInterval(id);
+  }, [customSoundPath, session.screenId, session.token]);
   const soundCfg = {
     soundId: state?.settings.sound_id ?? "chime",
     volume: state?.settings.sound_volume ?? 80,
-    customPath: state?.settings.custom_sound_url ?? null,
+    customPath: customSoundLink,
   };
   useEffect(() => {
     for (const call of state?.calls ?? []) {

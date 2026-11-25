@@ -79,6 +79,8 @@ const customCache = new Map<string, string>();
 async function customUrl(path: string): Promise<string | null> {
   const cached = customCache.get(path);
   if (cached) return cached;
+  // Already a (signed) link, e.g. on paired TV screens.
+  if (/^https?:\/\//.test(path)) return path;
   const { data, error } = await supabase.storage.from("alert-sounds").download(path);
   if (error || !data) return null;
   const url = URL.createObjectURL(data);
