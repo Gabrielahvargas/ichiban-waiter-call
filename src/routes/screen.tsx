@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CallGrid } from "@/components/CallGrid";
+import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SoundUnlockBanner } from "@/components/SoundUnlockBanner";
 import { playSound } from "@/modules/sound";
@@ -44,6 +45,8 @@ export const Route = createFileRoute("/screen")({
         property: "og:description",
         content: "Standalone waiter call display for TVs, tablets and touch computers.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: ScreenPage,
@@ -751,39 +754,44 @@ function AssignOverlay({
   const nameOf = (id: string | null) => waiters.find((w) => w.id === id)?.full_name ?? t("waiters.unassigned");
 
   return (
-    <Overlay title={t("screen.assignments")} hint={t("screen.remoteHint")} onClose={onClose}>
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <input
-          type="date"
-          value={serviceDate}
-          onChange={(e) => setServiceDate(e.target.value)}
-          className="rounded-md border border-border bg-background px-3 py-2"
-        />
+    <Overlay title={t("screen.assignments")} hint={t("screen.remoteHint")} onClose={onClose} scrollable>
+      <div className="sticky top-0 z-10 mb-4 flex w-full shrink-0 flex-wrap items-center justify-center gap-3 bg-background px-2 py-3">
+        <label className="flex items-center gap-3 font-semibold">
+          {t("waiters.date")}
+          <input
+            type="date"
+            data-nav-initial
+            value={serviceDate}
+            onChange={(e) => setServiceDate(e.target.value)}
+            className="min-h-11 min-w-44 rounded-md border border-border bg-background px-3 py-2 text-foreground [color-scheme:dark]"
+          />
+        </label>
         <div className="inline-flex rounded-full border border-border bg-secondary p-1">
           {(["lunch", "dinner"] as Shift[]).map((s) => (
-            <button
+            <Button
               key={s}
+              variant="ghost"
               type="button"
+              aria-pressed={shift === s}
               onClick={() => setShift(s)}
               className={cn(
-                "rounded-full px-4 py-1.5 font-semibold",
+                "h-11 rounded-full px-4 py-1.5 font-semibold",
                 shift === s ? "bg-primary text-primary-foreground" : "text-muted-foreground",
               )}
             >
               {t(`waiters.${s}`)}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
-      <div className="grid w-full max-w-5xl gap-4 md:grid-cols-[260px_1fr]">
+      <div className="grid w-full max-w-5xl shrink-0 gap-4 px-2 pb-2 md:grid-cols-[260px_1fr]">
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">{t("waiters.selectWaiter")}</p>
-          {waiters.map((w, i) => (
+          {waiters.map((w) => (
             <button
               key={w.id}
               type="button"
-              data-nav-initial={i === 0 ? true : undefined}
               onClick={() => setSelectedWaiter(selectedWaiter === w.id ? null : w.id)}
               className={cn(
                 "w-full rounded-lg border border-border bg-card px-4 py-3 text-left text-lg font-semibold",
@@ -833,25 +841,31 @@ function Overlay({
   hint,
   onClose,
   children,
+  scrollable = false,
 }: {
   title: string;
   hint: string;
   onClose: () => void;
   children: React.ReactNode;
+  scrollable?: boolean;
 }) {
   const { t } = useI18n();
   const ref = useRef<HTMLDivElement>(null);
   // D-pad: arrows move focus inside the overlay, OK activates, Back returns to the previous screen.
   useSpatialNav(ref, { onBack: onClose, initial: "[data-nav-initial]" });
   return (
-    <div ref={ref} className="tv-nav fixed inset-0 z-50 flex h-dvh flex-col items-center justify-center overflow-y-auto bg-background/95 p-[2vh]">
-      <h2 className="font-display text-[clamp(1.25rem,5vh,2.25rem)] font-bold uppercase leading-tight tracking-wide">{title}</h2>
-      <p className="mb-[1.5vh] mt-[0.5vh] text-[clamp(0.7rem,2vh,0.875rem)] text-muted-foreground">{hint}</p>
-      {children}
+    <div ref={ref} className="tv-nav fixed inset-0 z-50 flex h-dvh flex-col items-center justify-center overflow-hidden bg-background/95 p-[2vh]">
+      <h2 className="shrink-0 font-display text-[clamp(1.25rem,5vh,2.25rem)] font-bold uppercase leading-tight tracking-wide">{title}</h2>
+      <p className="mb-[1.5vh] mt-[0.5vh] shrink-0 text-[clamp(0.7rem,2vh,0.875rem)] text-muted-foreground">{hint}</p>
+      {scrollable ? (
+        <div className="flex min-h-0 w-full max-w-5xl flex-1 flex-col items-center overflow-y-auto overscroll-contain">
+          {children}
+        </div>
+      ) : children}
       <button
         type="button"
         onClick={onClose}
-        className="mt-[2vh] rounded-md border border-border px-5 py-[1vh] font-semibold"
+        className="mt-[2vh] shrink-0 rounded-md border border-border px-5 py-[1vh] font-semibold"
       >
         {t("common.back")}
       </button>
