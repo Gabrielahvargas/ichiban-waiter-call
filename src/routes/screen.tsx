@@ -756,16 +756,29 @@ function AssignOverlay({
   return (
     <Overlay title={t("screen.assignments")} hint={t("screen.remoteHint")} onClose={onClose} scrollable>
       <div className="sticky top-0 z-10 mb-4 flex w-full shrink-0 flex-wrap items-center justify-center gap-3 bg-background px-2 py-3">
-        <label className="flex items-center gap-3 font-semibold">
+        <div className="flex items-center gap-3 font-semibold">
           {t("waiters.date")}
-          <input
-            type="date"
+          <Button
+            type="button"
+            variant="outline"
+            aria-label="-1"
+            className="h-11 w-11 text-xl"
+            onClick={() => setServiceDate((d) => shiftIsoDate(d, -1))}
+          >
+            ‹
+          </Button>
+          <span className="min-w-36 text-center text-lg tabular-nums">{serviceDate}</span>
+          <Button
+            type="button"
+            variant="outline"
+            aria-label="+1"
             data-nav-initial
-            value={serviceDate}
-            onChange={(e) => setServiceDate(e.target.value)}
-            className="min-h-11 min-w-44 rounded-md border border-border bg-background px-3 py-2 text-foreground [color-scheme:dark]"
-          />
-        </label>
+            className="h-11 w-11 text-xl"
+            onClick={() => setServiceDate((d) => shiftIsoDate(d, 1))}
+          >
+            ›
+          </Button>
+        </div>
         <div className="inline-flex rounded-full border border-border bg-secondary p-1">
           {(["lunch", "dinner"] as Shift[]).map((s) => (
             <Button
@@ -871,4 +884,10 @@ function Overlay({
       </button>
     </div>
   );
+}
+
+function shiftIsoDate(iso: string, days: number): string {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(Date.UTC(y ?? 2000, (m ?? 1) - 1, (d ?? 1) + days));
+  return dt.toISOString().slice(0, 10);
 }
