@@ -786,7 +786,7 @@ function AssignOverlay({
       </div>
 
       <div className="grid w-full max-w-5xl shrink-0 gap-4 px-2 pb-2 md:grid-cols-[260px_1fr]">
-        <div className="space-y-2">
+        <div className="order-2 space-y-2 md:order-1">
           <p className="text-sm text-muted-foreground">{t("waiters.selectWaiter")}</p>
           {waiters.map((w) => (
             <button
@@ -804,7 +804,7 @@ function AssignOverlay({
           {waiters.length === 0 && <p className="text-sm text-muted-foreground">{t("waiters.empty")}</p>}
         </div>
 
-        <div>
+        <div className="sticky top-[4.5rem] z-[5] order-1 self-start bg-background pb-2 md:order-2">
           <p className="mb-2 text-sm text-muted-foreground">{t("waiters.selectTables")}</p>
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
             {TABLE_NUMBERS.map((num) => {
